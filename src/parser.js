@@ -57,7 +57,7 @@ semantics.addOperation("rep", {
   },
 
   PantryDecl(_pantry, _gap, path, _terminator) {
-    return path.rep()
+    return new core.PantryDecl(path.rep())
   },
 
   RecipeDecl(
