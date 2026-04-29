@@ -21,6 +21,13 @@ export class PrepField {
   }
 }
 
+/** Represents a pantry/import declaration. */
+export class PantryDecl {
+  constructor(path) {
+    this.path = path
+  }
+}
+
 /** Represents a recipe/function declaration. */
 export class RecipeDecl {
   constructor(name, params, returnType, body) {
