@@ -1,4 +1,5 @@
 import analyze from "../src/analyzer.js"
+import * as core from "../src/core.js"
 import generate from "../src/generator.js"
 import parse from "../src/parser.js"
 
@@ -174,6 +175,17 @@ ingredient d = Dough { flour: 200g }`)
   }`)
   })
 
+  test("TasteStmt without otherwise generates only an if statement", () => {
+    const output = js(String.raw`recipe check(hot: truth) yields nothing:
+  taste hot:
+    step show: display("hot")`)
+
+    expect(output).toContain(`  if (hot) {
+    display("hot");
+  }`)
+    expect(output).not.toContain("else")
+  })
+
   test("SimmerStmt generates a while loop", () => {
     const output = js(String.raw`stirring ingredient count: count = 1
 simmer count > 0:
@@ -212,5 +224,99 @@ batch item in items:
 
   test("SpoiledStmt generates throw new Error", () => {
     expect(js(`spoiled "too salty"`)).toContain('throw new Error("too salty");')
+  })
+
+  test("empty program generates just the preamble", () => {
+    expect(generate(new core.Program([]))).toBe(PREAMBLE)
+  })
+
+  test("string pseudo-nodes generate empty output", () => {
+    expect(generate(new core.Program(["-- parsed comment placeholder"]))).toBe(PREAMBLE)
+  })
+
+  test("PantryDecl generates no output after the preamble", () => {
+    expect(js('pantry "std.fling"')).toBe(PREAMBLE)
+  })
+
+  test("bare serve inside a recipe generates return without value", () => {
+    const output = js(String.raw`recipe stop() yields nothing:
+  serve`)
+
+    expect(output).toContain(`function stop() {
+  return;
+}`)
+  })
+
+  test("top-level bare serve generates no output after the preamble", () => {
+    expect(generate(new core.Program([new core.ServeStmt(null)]))).toBe(PREAMBLE)
+  })
+
+  test("UnaryExp with negate operator generates JavaScript negation", () => {
+    expect(js("ingredient x: count = -1")).toContain("const x = (-1);")
+  })
+
+  test("UnaryExp with not operator generates JavaScript negation", () => {
+    expect(js("ingredient x: truth = not no")).toContain("const x = (!false);")
+  })
+
+  test("unknown UnaryExp operators are rejected", () => {
+    expect(() =>
+      generate(
+        new core.Program([
+          new core.IngredientDecl(
+            "x",
+            new core.PrimitiveType("count"),
+            new core.UnaryExp("sqrt", new core.IntLit(4)),
+            false
+          ),
+        ])
+      )
+    ).toThrow(/unknown node UnaryExp/)
+  })
+
+  test("nested expressions preserve precedence with parentheses", () => {
+    const output = js("ingredient x: count = (1 + 2) * (3 - 4)")
+
+    expect(output).toContain("const x = ((1 + 2) * (3 - 4));")
+  })
+
+  test("truth operators generate JavaScript boolean operators", () => {
+    const output = js("ingredient ok: truth = yes and no or yes")
+
+    expect(output).toContain("const ok = ((true && false) || true);")
+  })
+
+  test("equality operators generate strict JavaScript comparisons", () => {
+    const output = js(String.raw`ingredient same: truth = 1 == 1
+ingredient different: truth = 1 != 2`)
+
+    expect(output).toContain("const same = (1 === 1);")
+    expect(output).toContain("const different = (1 !== 2);")
+  })
+
+  test("float literal generation preserves decimal values", () => {
+    expect(js("ingredient x: amount = 1.5")).toContain("const x = 1.5;")
+  })
+
+  test("assignment expression generation emits target assignment", () => {
+    const output = js(String.raw`stirring ingredient x: count = 1
+step change: x = 2`)
+
+    expect(output).toContain("x = 2;")
+  })
+
+  test("IndexAccessExp generation emits bracket access", () => {
+    const output = js(String.raw`ingredient xs: [count] = [1, 2]
+ingredient first: count = xs[0]`)
+
+    expect(output).toContain("const first = xs[0];")
+  })
+
+  test("throws on unknown node types", () => {
+    class UnknownNode {}
+
+    expect(() => generate(new core.Program([new UnknownNode()]))).toThrow(
+      /unknown node UnknownNode/
+    )
   })
 })

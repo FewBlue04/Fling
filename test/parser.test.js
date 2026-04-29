@@ -184,4 +184,141 @@ describe("the parser", () => {
   ])("rejects %s", (_name, source) => {
     expect(() => parse(source)).toThrow()
   })
+
+  test("parses stirring ingredient declarations as mutable", () => {
+    const ast = parse("stirring ingredient count: count = 10")
+
+    expect(ast.statements[0]).toBeInstanceOf(core.IngredientDecl)
+    expect(ast.statements[0].mutable).toBe(true)
+  })
+
+  test("parses pantry declarations", () => {
+    const ast = parse('pantry "std.fling"')
+
+    expect(ast.statements[0]).toBeInstanceOf(core.PantryDecl)
+    expect(ast.statements[0].path).toEqual(new core.StringLit("std.fling"))
+  })
+
+  test("parses prep declarations with multiple fields", () => {
+    const ast = parse(String.raw`prep Dough:
+  flour: grams
+  water: ml`)
+
+    expect(ast.statements[0].fields).toEqual([
+      new core.PrepField("flour", new core.UnitType("grams")),
+      new core.PrepField("water", new core.UnitType("ml")),
+    ])
+  })
+
+  test("parses float literals in expressions", () => {
+    const ast = parse("ingredient hydration: amount = 1.5")
+
+    expect(ast.statements[0].initializer).toEqual(new core.FloatLit(1.5))
+  })
+
+  test("parses collection type annotations", () => {
+    const ast = parse("ingredient xs: [count] = [1, 2]")
+
+    expect(ast.statements[0].type).toEqual(
+      new core.CollectionType(new core.PrimitiveType("count"))
+    )
+  })
+
+  test("parses batch loops", () => {
+    const ast = parse(String.raw`ingredient xs: [count] = [1]
+batch x in xs:
+  step show: display(x)`)
+    const batch = ast.statements[1]
+
+    expect(batch).toBeInstanceOf(core.BatchStmt)
+    expect(batch.varName).toBe("x")
+    expect(batch.collection).toEqual(new core.IdRef("xs"))
+  })
+
+  test("parses toss inside simmer", () => {
+    const ast = parse(String.raw`simmer yes:
+  toss`)
+
+    expect(ast.statements[0].body[0]).toBeInstanceOf(core.TossStmt)
+  })
+
+  test("parses skip inside batch", () => {
+    const ast = parse(String.raw`ingredient xs: [count] = [1]
+batch x in xs:
+  skip`)
+
+    expect(ast.statements[1].body[0]).toBeInstanceOf(core.SkipStmt)
+  })
+
+  test("parses spoiled statements", () => {
+    const ast = parse('spoiled "burned"')
+
+    expect(ast.statements[0]).toEqual(new core.SpoiledStmt(new core.StringLit("burned")))
+  })
+
+  test("parses struct literals with multiple fields", () => {
+    const ast = parse("ingredient d = Dough { flour: 200g, water: 100ml }")
+    const initializer = ast.statements[0].initializer
+
+    expect(initializer).toBeInstanceOf(core.StructLit)
+    expect(initializer.fields.map((field) => field.name)).toEqual(["flour", "water"])
+  })
+
+  test("parses otherwise clauses", () => {
+    const ast = parse(String.raw`recipe choose() yields count:
+  taste yes:
+    serve 1
+  otherwise:
+    serve 2`)
+
+    expect(ast.statements[0].body[0]).toBeInstanceOf(core.TasteStmt)
+    expect(ast.statements[0].body[0].alternate).toEqual([
+      new core.ServeStmt(new core.IntLit(2)),
+    ])
+  })
+
+  test("parses nested recipe calls", () => {
+    const ast = parse("ingredient result = outer(inner(1), 2)")
+    const initializer = ast.statements[0].initializer
+
+    expect(initializer).toBeInstanceOf(core.CallExp)
+    expect(initializer.args[0]).toBeInstanceOf(core.CallExp)
+    expect(initializer.args[0].callee).toEqual(new core.IdRef("inner"))
+  })
+
+  test("parses field access chains", () => {
+    const ast = parse("ingredient amount = kitchen.dough.flour")
+    const initializer = ast.statements[0].initializer
+
+    expect(initializer).toBeInstanceOf(core.FieldAccessExp)
+    expect(initializer.field).toBe("flour")
+    expect(initializer.object).toEqual(
+      new core.FieldAccessExp(new core.IdRef("kitchen"), "dough")
+    )
+  })
+
+  test("keeps same-or-deeper indented statements in a nested block", () => {
+    const ast = parse(String.raw`recipe f(flag: truth) yields nothing:
+  taste flag:
+    step show: display(1)
+  step done: display(2)`)
+    const recipe = ast.statements[0]
+
+    expect(recipe.body).toHaveLength(1)
+    expect(recipe.body[0]).toBeInstanceOf(core.TasteStmt)
+    expect(recipe.body[0].consequent).toHaveLength(2)
+    expect(recipe.body[0].consequent[1]).toBeInstanceOf(core.StepStmt)
+  })
+
+  test("parses simmer and batch statements inside recipe bodies", () => {
+    const simmerAst = parse(String.raw`recipe f(flag: truth) yields nothing:
+  simmer flag:
+    skip`)
+    const batchAst = parse(String.raw`recipe g(xs: [count]) yields nothing:
+  batch x in xs:
+    toss`)
+
+    expect(simmerAst.statements[0].body[0]).toBeInstanceOf(core.SimmerStmt)
+    expect(batchAst.statements[0].body[0]).toBeInstanceOf(core.BatchStmt)
+  })
 })

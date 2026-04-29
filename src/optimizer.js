@@ -180,9 +180,6 @@ export default function optimize(program) {
   }
 
   function reduceStrength(node) {
-    if (!(node instanceof core.BinaryExp)) {
-      return node
-    }
     if (node.op === "*" && isOne(node.right)) {
       return node.left
     }

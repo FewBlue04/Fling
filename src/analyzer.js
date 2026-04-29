@@ -138,10 +138,6 @@ function isTruth(type) {
   return type instanceof PrimitiveType && type.name === "truth"
 }
 
-function isLabel(type) {
-  return type instanceof PrimitiveType && type.name === "label"
-}
-
 function isNumeric(type) {
   return isScalar(type) || isUnit(type)
 }
