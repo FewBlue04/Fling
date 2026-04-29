@@ -1,0 +1,180 @@
+Fling {
+  Program     = Newlines? TopLevel* Newlines?
+
+  TopLevel    = PrepDecl
+              | PantryDecl
+              | RecipeDecl
+              | IngredientTop
+              | ServeTop
+              | StepTop
+              | TasteStmt
+              | SimmerStmt
+              | BatchStmt
+              | TossTop
+              | SkipTop
+              | SpoiledTop
+
+  IngredientTop = IngredientDecl Terminator
+  ServeTop    = TopServe Terminator
+  StepTop     = StepStmt Terminator
+  TossTop     = TossStmt Terminator
+  SkipTop     = SkipStmt Terminator
+  SpoiledTop  = SpoiledStmt Terminator
+
+  // Type definitions
+  PrepDecl    = "prep" Gap id Spaces ":" Newlines PrepField+
+  PrepField   = Indent id Spaces ":" Spaces Type Terminator
+
+  // Imports
+  PantryDecl  = "pantry" Gap stringlit Terminator
+
+  // Recipe (function) definition
+  RecipeDecl  = "recipe" Gap id Spaces "(" Spaces Params Spaces ")" Gap "yields" Gap Type Spaces ":" Block
+
+  Params      = ListOf<Param, Comma>
+  Param       = id Spaces ":" Spaces Type
+
+  // Variable declarations
+  IngredientDecl = ("stirring" Gap)? "ingredient" Gap id TypeAnnotation? Spaces "=" Spaces Exp
+  TypeAnnotation = Spaces ":" Spaces Type
+
+  // Top-level serve (main output)
+  TopServe    = "serve" Gap Exp
+
+  // Block of statements
+  // NOTE: Section 6 specifies Block = Statement+ with literal "\n" and two-space
+  // indentation elsewhere. Because Ohm normally skips spaces before syntactic
+  // terminals, this grammar keeps newlines significant and accepts indented
+  // statements so the Section 12 examples can parse.
+  Block       = Newlines Statement+
+
+  Statement   = IngredientStatement
+              | StepStatement
+              | ServeStatement
+              | TasteStatement
+              | SimmerStatement
+              | BatchStatement
+              | TossStatement
+              | SkipStatement
+              | SpoiledStatement
+
+  IngredientStatement = Indent IngredientDecl Terminator
+  StepStatement = Indent StepStmt Terminator
+  ServeStatement = Indent ServeStmt Terminator
+  TasteStatement = Indent TasteStmt
+  SimmerStatement = Indent SimmerStmt
+  BatchStatement = Indent BatchStmt
+  TossStatement = Indent TossStmt Terminator
+  SkipStatement = Indent SkipStmt Terminator
+  SpoiledStatement = Indent SpoiledStmt Terminator
+
+  StepStmt    = "step" Gap id Spaces ":" Spaces StepAction
+  StepAction  = id Spaces "=" Spaces Exp  -- assign
+              | Exp         -- exp
+  ServeStmt   = "serve" Gap Exp  -- withExp
+              | "serve"      -- bare
+  TossStmt    = "toss"
+  SkipStmt    = "skip"
+  SpoiledStmt = "spoiled" Gap Exp
+
+  TasteStmt   = "taste" Gap Exp Spaces ":" Block OtherwiseClause?
+  OtherwiseClause = Indent "otherwise" Spaces ":" Block
+
+  SimmerStmt  = "simmer" Gap Exp Spaces ":" Block
+
+  BatchStmt   = "batch" Gap id Gap "in" Gap Exp Spaces ":" Block
+
+  // Expressions
+  Exp         = Exp Gap "or" Gap Exp1   -- or
+              | Exp1
+
+  Exp1        = Exp1 Gap "and" Gap Exp2  -- and
+              | Exp2
+
+  Exp2        = "not" Gap Exp2       -- not
+              | Exp3
+
+  Exp3        = Exp3 Spaces relop Spaces Exp4  -- compare
+              | Exp4
+
+  Exp4        = Exp4 Spaces addop Spaces Exp5  -- add
+              | Exp5
+
+  Exp5        = Exp5 Spaces mulop Spaces Exp6  -- mul
+              | Exp6
+
+  Exp6        = "-" Spaces Exp6         -- negate
+              | Exp7
+
+  Exp7        = Exp7 Spaces "." Spaces id      -- fieldAccess
+              | Exp7 Spaces "[" Spaces Exp Spaces "]" -- indexAccess
+              | Exp7 Spaces "(" Spaces Args Spaces ")"  -- call
+              | Primary
+
+  Primary     = "(" Spaces Exp Spaces ")"      -- parens
+              | UnitLit
+              | floatlit
+              | intlit
+              | stringlit
+              | boollit
+              | StructLit
+              | CollectionLit
+              | id             -- id
+
+  StructLit   = id Spaces "{" Spaces FieldInits Spaces "}"
+  FieldInits  = ListOf<FieldInit, Comma>
+  FieldInit   = id Spaces ":" Spaces Exp
+
+  CollectionLit = "[" Spaces ListOf<Exp, Comma> Spaces "]"
+
+  Args        = ListOf<Exp, Comma>
+
+  // Types
+  Type        = PrimitiveType
+              | UnitType
+              | CollectionType
+              | id              -- userDefined
+
+  PrimitiveType = "count" | "amount" | "truth" | "label" | "nothing"
+
+  UnitType    = "grams" | "kg" | "oz" | "lbs"
+              | "ml" | "liters" | "cups" | "tbsp" | "tsp" | "floz"
+              | "celsius" | "fahrenheit"
+              | "seconds" | "minutes" | "hours"
+
+  CollectionType = "[" Spaces Type Spaces "]"
+
+  // Operators
+  relop       = "<=" | ">=" | "==" | "!=" | "<" | ">"
+  addop       = "+" | "-"
+  mulop       = "*" | "/" | "%"
+
+  // Unit literals (number followed immediately by unit suffix, no space)
+  UnitLit     = unitlit
+  unitlit     = floatlit unitSuffix
+              | intlit unitSuffix
+
+  unitSuffix  = "grams" | "g" | "kg" | "oz" | "lbs"
+              | "liters" | "ml" | "cups" | "tbsp" | "tsp" | "floz"
+              | "celsius" | "fahrenheit"
+              | "minutes" | "seconds" | "hours"
+
+  // Lexical rules
+  boollit     = "yes" | "no"
+  intlit      = digit+
+  floatlit    = digit+ "." digit+
+  stringlit   = "\"" (~"\"" any)* "\""
+  id          = ~keyword letter (letter | digit | "_")*
+  keyword     = ("recipe" | "ingredient" | "stirring" | "step" | "serve"
+              | "taste" | "otherwise" | "simmer" | "batch" | "toss" | "skip"
+              | "prep" | "pantry" | "spoiled" | "yields" | "yes" | "no"
+              | "and" | "or" | "not" | "in") ~(letter | digit | "_")
+
+  Terminator  = Newlines | end
+  Newlines    = "\n"+
+  Indent      = "  "+
+  Comma       = Spaces "," Spaces
+  Gap         = " "+
+  Spaces      = " "*
+  space      := "\t" | "\r" | " "* "--" (~"\n" any)*   -- lineComment
+}
