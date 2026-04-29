@@ -1,0 +1,10 @@
+{
+  "name": "fling",
+  "version": "1.0.0",
+  "description": "The Fling Programming Language",
+  "main": "src/compiler.js",
+  "scripts": {
+    "test": "node --experimental-vm-modules node_modules/.bin/jest"
+  },
+  "license": "MIT"
+}
