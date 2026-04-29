@@ -12,19 +12,19 @@ export default function generate(program) {
     return "  ".repeat(level)
   }
 
-  function genBlock(statements, indent) {
+  function genBlock(statements, indent, topLevel) {
     return statements
-      .map((statement) => gen(statement, indent))
+      .map((statement) => gen(statement, indent, topLevel))
       .filter((line) => line.length > 0)
       .join("\n")
   }
 
-  function gen(node, indent = 0) {
+  function gen(node, indent = 0, topLevel = true) {
     if (typeof node === "string") {
       return ""
     }
     if (node instanceof core.Program) {
-      const body = genBlock(node.statements, indent)
+      const body = genBlock(node.statements, indent, true)
       return body ? `${PREAMBLE}\n${body}` : PREAMBLE
     }
     if (node instanceof core.PrepDecl) {
@@ -35,7 +35,7 @@ export default function generate(program) {
     }
     if (node instanceof core.RecipeDecl) {
       const params = node.params.map((param) => param.name).join(", ")
-      const body = genBlock(node.body, indent + 1)
+      const body = genBlock(node.body, indent + 1, false)
       return [
         `${indentation(indent)}function ${node.name}(${params}) {`,
         body,
@@ -52,12 +52,17 @@ export default function generate(program) {
       return `${indentation(indent)}${gen(node.expression)};`
     }
     if (node instanceof core.ServeStmt) {
+      if (topLevel) {
+        return node.expression
+          ? `${indentation(indent)}console.log(${gen(node.expression)});`
+          : ""
+      }
       return node.expression
         ? `${indentation(indent)}return ${gen(node.expression)};`
         : `${indentation(indent)}return;`
     }
     if (node instanceof core.TasteStmt) {
-      const consequent = genBlock(node.consequent, indent + 1)
+      const consequent = genBlock(node.consequent, indent + 1, topLevel)
       const lines = [
         `${indentation(indent)}if (${gen(node.condition)}) {`,
         consequent,
@@ -65,13 +70,13 @@ export default function generate(program) {
       ]
       if (node.alternate) {
         lines.push(`${indentation(indent)}else {`)
-        lines.push(genBlock(node.alternate, indent + 1))
+        lines.push(genBlock(node.alternate, indent + 1, topLevel))
         lines.push(`${indentation(indent)}}`)
       }
       return lines.filter((line) => line.length > 0).join("\n")
     }
     if (node instanceof core.SimmerStmt) {
-      const body = genBlock(node.body, indent + 1)
+      const body = genBlock(node.body, indent + 1, topLevel)
       return [
         `${indentation(indent)}while (${gen(node.condition)}) {`,
         body,
@@ -81,7 +86,7 @@ export default function generate(program) {
         .join("\n")
     }
     if (node instanceof core.BatchStmt) {
-      const body = genBlock(node.body, indent + 1)
+      const body = genBlock(node.body, indent + 1, topLevel)
       return [
         `${indentation(indent)}for (const ${node.varName} of ${gen(node.collection)}) {`,
         body,

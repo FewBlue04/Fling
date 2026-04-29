@@ -1,0 +1,3 @@
+
+ingredient greeting: label = "Hello from Fling!"
+serve greeting
