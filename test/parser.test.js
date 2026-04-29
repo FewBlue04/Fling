@@ -321,4 +321,45 @@ batch x in xs:
     expect(simmerAst.statements[0].body[0]).toBeInstanceOf(core.SimmerStmt)
     expect(batchAst.statements[0].body[0]).toBeInstanceOf(core.BatchStmt)
   })
+
+  test("parses a recipe body containing only a bare serve", () => {
+    const ast = parse(String.raw`recipe doNothing() yields nothing:
+  serve`)
+    const recipe = ast.statements[0]
+
+    expect(recipe).toBeInstanceOf(core.RecipeDecl)
+    expect(recipe.body).toHaveLength(1)
+    expect(recipe.body[0]).toEqual(new core.ServeStmt(null))
+  })
+
+  test("does not let one recipe body bleed into the next top-level recipe", () => {
+    const ast = parse(String.raw`recipe first() yields count:
+  serve 1
+
+recipe second() yields count:
+  serve 2`)
+    const [first, second] = ast.statements
+
+    expect(first).toBeInstanceOf(core.RecipeDecl)
+    expect(second).toBeInstanceOf(core.RecipeDecl)
+    expect(first.name).toBe("first")
+    expect(first.body).toEqual([new core.ServeStmt(new core.IntLit(1))])
+    expect(second.name).toBe("second")
+    expect(second.body).toEqual([new core.ServeStmt(new core.IntLit(2))])
+  })
+
+  test("parses taste consequent and otherwise blocks with one statement each", () => {
+    const ast = parse(String.raw`recipe check(x: truth) yields count:
+  taste x:
+    serve 1
+  otherwise:
+    serve 2`)
+    const taste = ast.statements[0].body[0]
+
+    expect(taste).toBeInstanceOf(core.TasteStmt)
+    expect(taste.consequent).toHaveLength(1)
+    expect(taste.consequent[0]).toEqual(new core.ServeStmt(new core.IntLit(1)))
+    expect(taste.alternate).toHaveLength(1)
+    expect(taste.alternate[0]).toEqual(new core.ServeStmt(new core.IntLit(2)))
+  })
 })
