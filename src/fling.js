@@ -6,6 +6,81 @@ import parse from './parser.js'
 import analyze from './analyzer.js'
 import optimize from './optimizer.js'
 
+if (process.argv[2] === '--chef') {
+  const frames = [
+    `
+    ( )
+     |
+  [=====]
+  |     |
+  |_____|
+
+  Chef is thinking...
+`,
+    `
+    ( )
+     |
+  [=====]
+  |     |
+  |_____|
+
+     🥞
+`,
+    `
+    \\o/
+     |
+  [=====]
+
+     🥞 ~
+`,
+    `
+    \\o/
+     |
+  [=====]
+
+        🥞~~
+`,
+    `
+    \\o/
+     |       catch!
+  [=====]
+
+     🥞
+`,
+    `
+    ( )
+     |
+  [=====]
+  |     |
+  |_____|
+
+  🥞  ...nice flip.
+`,
+    `
+
+  F L I N G
+
+  The language that throws things
+  with style.
+
+  Happy cooking, ${process.env.USER || 'chef'}.
+`,
+  ]
+
+  const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
+
+  async function runChef() {
+    for (const frame of frames) {
+      process.stdout.write('\x1Bc')
+      console.log(frame)
+      await delay(600)
+    }
+  }
+
+  await runChef()
+  process.exit(0)
+}
+
 const modes = new Set(['--syntax', '--parse', '--analyze', '--optimize'])
 const [firstArg, secondArg] = process.argv.slice(2)
 const mode = modes.has(firstArg) ? firstArg : null
