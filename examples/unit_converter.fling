@@ -1,0 +1,18 @@
+-- Unit checking keeps weight math with weight and volume math with volume.
+ingredient flour_bag: kg = 1kg
+ingredient flour_scoop: grams = 250g
+ingredient batter_cups: cups = 2cups
+ingredient extra_milk: ml = 120ml
+
+-- Same-dimension arithmetic is accepted and normalized internally.
+ingredient total_flour: grams = flour_bag + flour_scoop
+ingredient total_liquid: ml = batter_cups + extra_milk
+
+-- convert returns the requested compatible unit for serving or display.
+ingredient flour_in_kg: kg = convert(total_flour, "kg")
+ingredient liquid_in_cups: cups = convert(total_liquid, "cups")
+
+step show_total_flour: display(total_flour)
+step show_total_liquid: display(total_liquid)
+step show_liquid_cups: display(liquid_in_cups)
+serve flour_in_kg

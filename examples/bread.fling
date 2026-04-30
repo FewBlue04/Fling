@@ -1,0 +1,27 @@
+-- A complete bread workflow using a Dough prep, unit literals, and recipe returns.
+prep Dough:
+  flour: grams
+  water: ml
+  salt: grams
+  yeast: grams
+
+-- Build a hydrated dough from measured flour and water.
+recipe make_dough(flour_grams: grams, water_ml: ml) yields Dough:
+  ingredient salt_pinches: grams = 10g
+  ingredient yeast_scoop: grams = 7g
+  serve Dough { flour: flour_grams, water: water_ml, salt: salt_pinches, yeast: yeast_scoop }
+
+-- The bake recipe accepts oven temperature and bake time as checked units.
+recipe bake(oven_heat: celsius, bake_time: minutes) yields label:
+  step note_heat: display(oven_heat)
+  step note_time: display(bake_time)
+  serve "Crusty country loaf"
+
+ingredient loaf: Dough = make_dough(500g, 325ml)
+ingredient oven: celsius = 220celsius
+ingredient minutes_in_oven: minutes = 35minutes
+ingredient bread_label: label = bake(oven, minutes_in_oven)
+
+step show_water: display(loaf.water)
+step show_result: display(bread_label)
+serve loaf.flour

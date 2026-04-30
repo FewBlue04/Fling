@@ -1,16 +1,35 @@
 {
   "name": "fling",
   "version": "1.0.0",
-  "description": "The Fling Programming Language",
+  "description": "A statically-typed recipe-themed programming language that compiles to JavaScript",
+  "keywords": [
+    "language",
+    "compiler",
+    "recipe",
+    "ohm",
+    "static-types",
+    "units"
+  ],
+  "homepage": "https://github.com/FewBlue04/Fling",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/FewBlue04/Fling.git"
+  },
+  "bugs": {
+    "url": "https://github.com/FewBlue04/Fling/issues"
+  },
   "type": "module",
   "main": "src/compiler.js",
   "bin": {
     "fling": "src/fling.js"
   },
   "scripts": {
-    "test": "node --experimental-vm-modules node_modules/.bin/jest"
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --coverage"
   },
   "author": "Matt",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "dependencies": {
     "ohm-js": "^17.1.0"
   },

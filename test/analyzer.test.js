@@ -80,6 +80,10 @@ describe("unit system", () => {
 
 describe("the analyzer", () => {
   describe("valid programs", () => {
+    test("accepts pantry declarations", () => {
+      expect(() => check('pantry "utils.fling"')).not.toThrow()
+    })
+
     test("accepts valid ingredient declaration with explicit type", () => {
       const program = check("ingredient servings: count = 4")
 
@@ -431,6 +435,14 @@ ingredient x = convert(1g, target)`, /convert target must be a unit label litera
           ])
         )
       ).toThrow(/unknown expression UnknownExpression/)
+    })
+
+    test("rejects a direct unknown statement node", () => {
+      class UnknownStatement {}
+
+      expect(() => analyze(new core.Program([new UnknownStatement()]))).toThrow(
+        /unknown statement type UnknownStatement/
+      )
     })
 
     test("rejects a direct unknown binary operator node", () => {

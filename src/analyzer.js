@@ -257,6 +257,9 @@ export default function analyze(program) {
     if (statement instanceof core.PrepDecl) {
       return
     }
+    if (statement instanceof core.PantryDecl) {
+      return
+    }
     if (statement instanceof core.RecipeDecl) {
       return analyzeRecipe(statement, context)
     }
@@ -289,7 +292,9 @@ export default function analyze(program) {
     }
     if (statement instanceof core.SpoiledStmt) {
       statement.type = analyzeExpression(statement.message, context)
+      return
     }
+    throw new Error(`unknown statement type ${statement.constructor.name}`)
   }
 
   function analyzeRecipe(statement, context) {

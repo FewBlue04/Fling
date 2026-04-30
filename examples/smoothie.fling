@@ -1,0 +1,21 @@
+-- Smoothie batching with typed units, a serving scale, and a label collection.
+ingredient base_banana: count = 2
+ingredient base_yogurt: grams = 150g
+ingredient base_milk: ml = 240ml
+ingredient base_honey: tbsp = 1tbsp
+ingredient ingredient_names: [label] = ["banana", "yogurt", "milk", "honey"]
+
+recipe scale_smoothie(servings: count) yields nothing:
+  ingredient bananas: count = base_banana * servings
+  ingredient yogurt: grams = base_yogurt * servings
+  ingredient milk: ml = base_milk * servings
+  ingredient honey: tbsp = base_honey * servings
+  batch name in ingredient_names:
+    step show_name: display(name)
+  step show_bananas: display(bananas)
+  step show_yogurt: display(yogurt)
+  step show_milk: display(milk)
+  step show_honey: display(honey)
+
+step make_three_smoothies: scale_smoothie(3)
+serve "Smoothie batch ready"

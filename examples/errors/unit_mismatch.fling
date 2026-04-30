@@ -1,0 +1,4 @@
+-- Deliberate type error: weight and volume cannot be added together.
+ingredient flour: grams = 200g
+ingredient milk: ml = 350ml
+ingredient bad = flour + milk

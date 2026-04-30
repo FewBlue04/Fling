@@ -1,0 +1,10 @@
+-- Countdown timer using a mutable stirring ingredient and simmer loop.
+stirring ingredient count: count = 5
+
+simmer count > 0:
+  step show_count: display(count)
+  step lower_count: count = count - 1
+  taste count == 0:
+    toss
+
+serve "Countdown complete"
