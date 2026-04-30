@@ -52,6 +52,9 @@ export default function optimize(program) {
     if (original?.type) {
       node.type = original.type
     }
+    if (original?.unit && !(node instanceof core.UnitLit)) {
+      node.unit = original.unit
+    }
     return node
   }
 
@@ -306,6 +309,12 @@ export default function optimize(program) {
         return reduced
       }
       return isLiteral(optimized.left) && isLiteral(optimized.right) ? foldBinary(optimized) : optimized
+    }
+    if (expression instanceof core.Assignment) {
+      return copyType(
+        new core.Assignment(expression.target, optimizeExpression(expression.source)),
+        expression
+      )
     }
     if (expression instanceof core.UnaryExp) {
       const optimized = copyType(

@@ -4,9 +4,13 @@
   "description": "The Fling Programming Language",
   "type": "module",
   "main": "src/compiler.js",
+  "bin": {
+    "fling": "src/fling.js"
+  },
   "scripts": {
     "test": "node --experimental-vm-modules node_modules/.bin/jest"
   },
+  "author": "Matt",
   "dependencies": {
     "ohm-js": "^17.1.0"
   },

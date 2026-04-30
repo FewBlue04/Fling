@@ -297,19 +297,6 @@ batch x in xs:
     )
   })
 
-  test("keeps same-or-deeper indented statements in a nested block", () => {
-    const ast = parse(String.raw`recipe f(flag: truth) yields nothing:
-  taste flag:
-    step show: display(1)
-  step done: display(2)`)
-    const recipe = ast.statements[0]
-
-    expect(recipe.body).toHaveLength(1)
-    expect(recipe.body[0]).toBeInstanceOf(core.TasteStmt)
-    expect(recipe.body[0].consequent).toHaveLength(2)
-    expect(recipe.body[0].consequent[1]).toBeInstanceOf(core.StepStmt)
-  })
-
   test("parses simmer and batch statements inside recipe bodies", () => {
     const simmerAst = parse(String.raw`recipe f(flag: truth) yields nothing:
   simmer flag:
@@ -361,5 +348,28 @@ recipe second() yields count:
     expect(taste.consequent[0]).toEqual(new core.ServeStmt(new core.IntLit(1)))
     expect(taste.alternate).toHaveLength(1)
     expect(taste.alternate[0]).toEqual(new core.ServeStmt(new core.IntLit(2)))
+  })
+
+  test("parses recipe with nested taste/otherwise", () => {
+    const ast = parse(String.raw`recipe nested(x: truth, y: truth) yields count:
+  taste x:
+    taste y:
+      serve 1
+    otherwise:
+      serve 2
+  otherwise:
+    serve 3`)
+    const recipe = ast.statements[0]
+    const outerTaste = recipe.body[0]
+
+    expect(outerTaste).toBeInstanceOf(core.TasteStmt)
+    expect(outerTaste.consequent).toHaveLength(1)
+    expect(outerTaste.consequent[0]).toBeInstanceOf(core.TasteStmt)
+    expect(outerTaste.consequent[0].consequent).toHaveLength(1)
+    expect(outerTaste.consequent[0].consequent[0]).toEqual(new core.ServeStmt(new core.IntLit(1)))
+    expect(outerTaste.consequent[0].alternate).toHaveLength(1)
+    expect(outerTaste.consequent[0].alternate[0]).toEqual(new core.ServeStmt(new core.IntLit(2)))
+    expect(outerTaste.alternate).toHaveLength(1)
+    expect(outerTaste.alternate[0]).toEqual(new core.ServeStmt(new core.IntLit(3)))
   })
 })

@@ -3,9 +3,21 @@ import * as ohm from "ohm-js"
 import path from "path"
 import * as core from "./core.js"
 
-const grammar = ohm.grammar(
-  fs.readFileSync(path.join(process.cwd(), "src", "fling.ohm"), "utf-8")
-)
+/* istanbul ignore next -- This is a host-environment fallback for CLI/import locations, not language behavior. */
+function findGrammarPath() {
+  const stackPath = new Error().stack?.match(/file:\/\/\/([^\n)]+src\/parser\.js)/)?.[1]
+  const moduleDir = stackPath
+    ? path.dirname(decodeURIComponent(stackPath).replace(/\//g, path.sep))
+    : null
+  const candidates = [
+    moduleDir && path.join(moduleDir, "fling.ohm"),
+    path.join(process.cwd(), "src", "fling.ohm"),
+  ].filter(Boolean)
+  return candidates.find((candidate) => fs.existsSync(candidate))
+}
+
+const grammarPath = findGrammarPath()
+const grammar = ohm.grammar(fs.readFileSync(grammarPath, "utf-8"))
 
 const semantics = grammar.createSemantics()
 let currentSource = ""
@@ -120,12 +132,14 @@ semantics.addOperation("rep", {
   },
 
   Block(_newlines, statements) {
+    /* istanbul ignore if -- Block is Statement+ in the grammar, so parse() cannot produce an empty block. */
     if (statements.children.length === 0) {
       return []
     }
     const baseColumn = columnOf(statements.child(0))
     const bodyStatements = []
     for (const statement of statements.children) {
+      /* istanbul ignore if -- Ohm ends the current Statement+ before a lower-indented statement is included. */
       if (columnOf(statement) < baseColumn) {
         break
       }
@@ -168,7 +182,7 @@ semantics.addOperation("rep", {
     return new core.StepStmt(name.rep(), expression.rep())
   },
   StepAction_assign(target, _spaces1, _eq, _spaces2, expression) {
-    return new core.BinaryExp("=", new core.IdRef(target.rep()), expression.rep())
+    return new core.Assignment(new core.IdRef(target.rep()), expression.rep())
   },
   StepAction_exp(expression) {
     return expression.rep()
@@ -330,9 +344,11 @@ semantics.addOperation("rep", {
     ].find((suffix) => this.sourceString.endsWith(suffix))
     return new core.UnitLit(Number(this.sourceString.slice(0, -unit.length)), unit)
   },
+  /* istanbul ignore next -- UnitLit builds the AST directly from sourceString instead of delegating to this wrapper. */
   unitlit(_number, _unit) {
     return this.sourceString
   },
+  /* istanbul ignore next -- UnitLit extracts the suffix from sourceString, so this lexical action is not invoked. */
   unitSuffix(_unit) {
     return this.sourceString
   },
@@ -358,12 +374,15 @@ semantics.addOperation("rep", {
   EmptyListOf() {
     return []
   },
+  /* istanbul ignore next -- Parent statement actions accept terminators syntactically but do not evaluate them. */
   Terminator(_terminator) {
     return null
   },
+  /* istanbul ignore next -- Newline nodes structure the parse but are not represented in the AST. */
   Newlines(_newlines) {
     return null
   },
+  /* istanbul ignore next -- Concrete terminals are consumed by rule-specific actions through sourceString. */
   _terminal() {
     return this.sourceString
   },

@@ -126,6 +126,8 @@ const UNIT_ALIASES = {
   g: "grams",
 }
 
+const UNIT_NAMES = new Set(Object.keys(DIMENSION))
+
 function normalizedUnit(unit) {
   return UNIT_ALIASES[unit] ?? unit
 }
@@ -406,6 +408,9 @@ export default function analyze(program) {
     if (expression instanceof core.BinaryExp) {
       return analyzeBinary(expression, context)
     }
+    if (expression instanceof core.Assignment) {
+      return analyzeAssignment(expression, context)
+    }
     if (expression instanceof core.UnaryExp) {
       return analyzeUnary(expression, context)
     }
@@ -454,10 +459,6 @@ export default function analyze(program) {
   }
 
   function analyzeBinary(expression, context) {
-    if (expression.op === "=") {
-      return analyzeAssignment(expression, context)
-    }
-
     const leftType = analyzeExpression(expression.left, context)
     const rightType = analyzeExpression(expression.right, context)
 
@@ -505,17 +506,17 @@ export default function analyze(program) {
   }
 
   function analyzeAssignment(expression, context) {
-    must(expression.left instanceof core.IdRef, TypeError, "assignment target must be an identifier")
-    const entity = context.lookup(expression.left.name)
-    must(entity.kind === "variable", TypeError, `'${expression.left.name}' is not a variable`)
-    must(entity.mutable, TypeError, `cannot assign to immutable ingredient '${expression.left.name}'`)
-    const rightType = analyzeExpression(expression.right, context)
+    must(expression.target instanceof core.IdRef, TypeError, "assignment target must be an identifier")
+    const entity = context.lookup(expression.target.name)
+    must(entity.kind === "variable", TypeError, `'${expression.target.name}' is not a variable`)
+    must(entity.mutable, TypeError, `cannot assign to immutable ingredient '${expression.target.name}'`)
+    const rightType = analyzeExpression(expression.source, context)
     must(
       typeEqual(entity.type, rightType),
       TypeError,
       `cannot assign ${describe(rightType)} to ${describe(entity.type)}`
     )
-    expression.left.type = entity.type
+    expression.target.type = entity.type
     expression.type = rightType
     return expression.type
   }
@@ -586,8 +587,15 @@ export default function analyze(program) {
     }
     must(args.length === 2, TypeError, "convert expects 2 arguments")
     const valueType = analyzeExpression(args[0], context)
-    analyzeExpression(args[1], context)
-    return valueType
+    const targetType = analyzeExpression(args[1], context)
+    must(isUnit(valueType), TypeError, "convert value must be a unit")
+    must(targetType instanceof core.PrimitiveType && targetType.name === "label", TypeError, "convert target must be a label")
+    must(args[1] instanceof core.StringLit, TypeError, "convert target must be a unit label literal")
+    const targetUnit = normalizedUnit(args[1].value)
+    must(UNIT_NAMES.has(targetUnit), TypeError, `unknown unit '${args[1].value}'`)
+    must(unitsCompatible(valueType.name, targetUnit), TypeError, `cannot convert ${describe(valueType)} to ${targetUnit}`)
+    args[1].unit = targetUnit
+    return new UnitType(targetUnit)
   }
 
   function analyzeFieldAccess(expression, context) {

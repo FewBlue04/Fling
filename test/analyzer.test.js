@@ -208,7 +208,7 @@ ingredient n: count = size(xs)`)
     test("accepts valid convert() call", () => {
       const program = check('ingredient flour: grams = convert(1kg, "grams")')
 
-      expect(program.statements[0].initializer.type).toEqual(new core.UnitType("kg"))
+      expect(program.statements[0].initializer.type).toEqual(new core.UnitType("grams"))
     })
 
     test("accepts valid mix() call", () => {
@@ -227,6 +227,14 @@ ingredient n: count = size(xs)`)
       const program = check("ingredient xs: [count] = []")
 
       expect(program.statements[0].initializer.type).toEqual(new core.CollectionType(null))
+    })
+
+    test("reports unknown element types from empty collection indexing", () => {
+      checkError(
+        String.raw`ingredient xs = []
+ingredient field = xs[0].flour`,
+        /cannot access field 'flour' on unknown/
+      )
     })
 
     test("ignores string pseudo-statements in analyzed programs", () => {
@@ -398,6 +406,12 @@ ingredient y = f(1g)`,
       ["comparison between scalar and unit", "ingredient bad: truth = 1 < 2g", /cannot compare count and grams/],
       ["mix with wrong arg count", "step stir: mix(1)", /mix expects 2 arguments/],
       ["size on non-collection", "ingredient n: count = size(1)", /size expects a collection/],
+      ["convert on non-unit value", 'ingredient x = convert(1, "grams")', /convert value must be a unit/],
+      ["convert with non-label target", "ingredient x = convert(1g, 1)", /convert target must be a label/],
+      ["convert with nonliteral target", String.raw`ingredient target: label = "grams"
+ingredient x = convert(1g, target)`, /convert target must be a unit label literal/],
+      ["convert to unknown unit", 'ingredient x = convert(1g, "pinches")', /unknown unit 'pinches'/],
+      ["convert across dimensions", 'ingredient x = convert(1g, "ml")', /cannot convert grams to ml/],
     ])("rejects %s", (_name, source, pattern) => {
       checkError(source, pattern)
     })

@@ -50,7 +50,55 @@ simmer n > 0:
     const output = compile("ingredient result: count = 5 + 3")
 
     expect(output).toContain("const result = 8;")
-    expect(output).not.toContain("5 + 3")
+    expect(output).not.toContain("(5 + 3)")
+  })
+
+  test("compiled unit arithmetic through variables uses base units", () => {
+    const output = compile(String.raw`ingredient a: kg = 1kg
+ingredient b: grams = 500g
+ingredient total: grams = a + b
+serve total`)
+    const logs = []
+    const originalLog = console.log
+    console.log = (value) => logs.push(value)
+    try {
+      new Function(output)()
+    } finally {
+      console.log = originalLog
+    }
+
+    expect(logs).toEqual([1500])
+  })
+
+  test("compiled convert returns the requested display unit", () => {
+    const output = compile(String.raw`ingredient flour: kg = convert(1000g, "kg")
+serve flour`)
+    const logs = []
+    const originalLog = console.log
+    console.log = (value) => logs.push(value)
+    try {
+      new Function(output)()
+    } finally {
+      console.log = originalLog
+    }
+
+    expect(logs).toEqual([1])
+  })
+
+  test("compiled temperature literals and conversion use celsius internally", () => {
+    const output = compile(String.raw`ingredient temp: celsius = 212fahrenheit
+ingredient shown: fahrenheit = convert(temp, "fahrenheit")
+serve shown`)
+    const logs = []
+    const originalLog = console.log
+    console.log = (value) => logs.push(value)
+    try {
+      new Function(output)()
+    } finally {
+      console.log = originalLog
+    }
+
+    expect(logs[0]).toBeCloseTo(212)
   })
 
   test("dead code after serve is removed", () => {

@@ -188,6 +188,17 @@ ingredient quotient: amount = 5.5 / 2.0`)
       expect(initializer.value).toBe(true)
     })
 
+    test("leaves boolean literal equality unchanged", () => {
+      const initializer = firstInitializer("ingredient same: truth = yes == no")
+
+      expect(initializer).toBeInstanceOf(core.BinaryExp)
+      expect(initializer.op).toBe("==")
+      expect(initializer.left).toBeInstanceOf(core.BoolLit)
+      expect(initializer.left.value).toBe(true)
+      expect(initializer.right).toBeInstanceOf(core.BoolLit)
+      expect(initializer.right.value).toBe(false)
+    })
+
     test("negates FloatLit values", () => {
       const initializer = firstInitializer("ingredient result: amount = -1.5")
 
@@ -304,8 +315,8 @@ simmer n > 0:
       const loop = program.statements[1]
 
       expect(loop).toBeInstanceOf(core.SimmerStmt)
-      expect(loop.body[0].expression).toBeInstanceOf(core.BinaryExp)
-      expect(loop.body[0].expression.op).toBe("=")
+      expect(loop.body[0].expression).toBeInstanceOf(core.Assignment)
+      expect(loop.body[0].expression.target.name).toBe("n")
     })
 
     test("optimizes batch collection and preserves toss and skip", () => {
@@ -327,6 +338,15 @@ batch x in xs:
       expect(body[0]).toBeInstanceOf(core.SpoiledStmt)
       expect(body[0].message).toBeInstanceOf(core.StringLit)
       expect(body[0].message.value).toBe("bad")
+    })
+
+    test("preserves bare serve while optimizing recipe bodies", () => {
+      const body = recipeBody(String.raw`recipe stop() yields nothing:
+  serve`)
+
+      expect(body).toHaveLength(1)
+      expect(body[0]).toBeInstanceOf(core.ServeStmt)
+      expect(body[0].expression).toBeNull()
     })
 
     test("passes PantryDecl through optimizer", () => {

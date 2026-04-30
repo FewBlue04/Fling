@@ -119,6 +119,14 @@ export class BinaryExp {
   }
 }
 
+/** Represents assignment to an existing mutable ingredient. */
+export class Assignment {
+  constructor(target, source) {
+    this.target = target
+    this.source = source
+  }
+}
+
 /** Represents a unary expression with an operator and one operand. */
 export class UnaryExp {
   constructor(op, operand) {
