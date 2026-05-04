@@ -1,0 +1,7 @@
+ingredient x: kg = 5kg
+
+ingredient y: kg  = 6kg
+
+ingredient z = x + y
+
+serve z
