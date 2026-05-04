@@ -1,5 +1,5 @@
-import * as core from "./core.js"
-import { PrimitiveType, UnitType } from "./core.js"
+import * as core from './core.js'
+import { PrimitiveType, UnitType } from './core.js'
 
 export class Context {
   constructor(parent = null) {
@@ -31,31 +31,31 @@ export class Context {
 }
 
 export const DIMENSION = {
-  grams: "weight",
-  kg: "weight",
-  oz: "weight",
-  lbs: "weight",
-  ml: "volume",
-  liters: "volume",
-  cups: "volume",
-  tbsp: "volume",
-  tsp: "volume",
-  floz: "volume",
-  celsius: "temperature",
-  fahrenheit: "temperature",
-  seconds: "time",
-  minutes: "time",
-  hours: "time",
-  count: "scalar",
-  amount: "scalar",
+  grams: 'weight',
+  kg: 'weight',
+  oz: 'weight',
+  lbs: 'weight',
+  ml: 'volume',
+  liters: 'volume',
+  cups: 'volume',
+  tbsp: 'volume',
+  tsp: 'volume',
+  floz: 'volume',
+  celsius: 'temperature',
+  fahrenheit: 'temperature',
+  seconds: 'time',
+  minutes: 'time',
+  hours: 'time',
+  count: 'scalar',
+  amount: 'scalar',
 }
 
 export const BASE_UNIT = {
-  weight: "grams",
-  volume: "ml",
-  temperature: "celsius",
-  time: "seconds",
-  scalar: "amount",
+  weight: 'grams',
+  volume: 'ml',
+  temperature: 'celsius',
+  time: 'seconds',
+  scalar: 'amount',
 }
 
 export function unitsCompatible(a, b) {
@@ -67,12 +67,12 @@ function isUnit(type) {
 }
 
 function isScalar(type) {
-  return type instanceof PrimitiveType && ["count", "amount"].includes(type.name)
+  return type instanceof PrimitiveType && ['count', 'amount'].includes(type.name)
 }
 
 function widerScalar(leftType, rightType) {
   return new PrimitiveType(
-    leftType.name === "amount" || rightType.name === "amount" ? "amount" : "count"
+    leftType.name === 'amount' || rightType.name === 'amount' ? 'amount' : 'count',
   )
 }
 
@@ -86,24 +86,24 @@ export function resultUnit(op, leftType, rightType) {
       throw new TypeError(`cannot ${op} ${typeName(leftType)} and ${typeName(rightType)}`)
     }
 
-    if (op === "+" || op === "-") {
+    if (op === '+' || op === '-') {
       return new UnitType(BASE_UNIT[DIMENSION[leftType.name]])
     }
-    if (op === "/") {
-      return new PrimitiveType("amount")
+    if (op === '/') {
+      return new PrimitiveType('amount')
     }
     throw new TypeError(`cannot ${op} ${typeName(leftType)} and ${typeName(rightType)}`)
   }
 
   if (isUnit(leftType) && isScalar(rightType)) {
-    if (op === "*" || op === "/") {
+    if (op === '*' || op === '/') {
       return new UnitType(leftType.name)
     }
     throw new TypeError(`cannot ${op} ${typeName(leftType)} and ${typeName(rightType)}`)
   }
 
   if (isScalar(leftType) && isUnit(rightType)) {
-    if (op === "*") {
+    if (op === '*') {
       return new UnitType(rightType.name)
     }
     throw new TypeError(`cannot ${op} ${typeName(leftType)} and ${typeName(rightType)}`)
@@ -116,14 +116,14 @@ export function resultUnit(op, leftType, rightType) {
   throw new TypeError(`cannot ${op} ${typeName(leftType)} and ${typeName(rightType)}`)
 }
 
-const NOTHING = new PrimitiveType("nothing")
-const COUNT = new PrimitiveType("count")
-const AMOUNT = new PrimitiveType("amount")
-const TRUTH = new PrimitiveType("truth")
-const LABEL = new PrimitiveType("label")
+const NOTHING = new PrimitiveType('nothing')
+const COUNT = new PrimitiveType('count')
+const AMOUNT = new PrimitiveType('amount')
+const TRUTH = new PrimitiveType('truth')
+const LABEL = new PrimitiveType('label')
 
 const UNIT_ALIASES = {
-  g: "grams",
+  g: 'grams',
 }
 
 const UNIT_NAMES = new Set(Object.keys(DIMENSION))
@@ -133,11 +133,11 @@ function normalizedUnit(unit) {
 }
 
 function isNothing(type) {
-  return type instanceof PrimitiveType && type.name === "nothing"
+  return type instanceof PrimitiveType && type.name === 'nothing'
 }
 
 function isTruth(type) {
-  return type instanceof PrimitiveType && type.name === "truth"
+  return type instanceof PrimitiveType && type.name === 'truth'
 }
 
 function isNumeric(type) {
@@ -146,9 +146,9 @@ function isNumeric(type) {
 
 function describe(type) {
   if (type instanceof core.CollectionType) {
-    return `[${type.elementType ? describe(type.elementType) : "unknown"}]`
+    return `[${type.elementType ? describe(type.elementType) : 'unknown'}]`
   }
-  return type?.name ?? "unknown"
+  return type?.name ?? 'unknown'
 }
 
 export function typeEqual(a, b) {
@@ -159,7 +159,9 @@ export function typeEqual(a, b) {
     return unitsCompatible(a.name, b.name)
   }
   if (a instanceof core.CollectionType && b instanceof core.CollectionType) {
-    return a.elementType === null || b.elementType === null || typeEqual(a.elementType, b.elementType)
+    return (
+      a.elementType === null || b.elementType === null || typeEqual(a.elementType, b.elementType)
+    )
   }
   if (a instanceof core.UserDefinedType && b instanceof core.UserDefinedType) {
     return a.name === b.name
@@ -180,7 +182,7 @@ export function alwaysServes(statements) {
       (statement instanceof core.TasteStmt &&
         statement.alternate !== null &&
         alwaysServes(statement.consequent) &&
-        alwaysServes(statement.alternate))
+        alwaysServes(statement.alternate)),
   )
 }
 
@@ -192,11 +194,7 @@ export default function analyze(program) {
   function resolveType(type) {
     if (type instanceof core.UserDefinedType) {
       const entity = root.lookup(type.name)
-      must(
-        entity.kind === "prep",
-        TypeError,
-        `'${type.name}' is not a prep type`
-      )
+      must(entity.kind === 'prep', TypeError, `'${type.name}' is not a prep type`)
     } else if (type instanceof core.CollectionType && type.elementType !== null) {
       resolveType(type.elementType)
     }
@@ -220,12 +218,12 @@ export default function analyze(program) {
 
   for (const statement of program.statements) {
     if (statement instanceof core.PrepDecl) {
-      root.add(statement.name, { fields: new Map(), kind: "prep" })
+      root.add(statement.name, { fields: new Map(), kind: 'prep' })
     } else if (statement instanceof core.RecipeDecl) {
       root.add(statement.name, {
         params: statement.params,
         returnType: statement.returnType,
-        kind: "recipe",
+        kind: 'recipe',
       })
     }
   }
@@ -251,7 +249,7 @@ export default function analyze(program) {
   }
 
   function analyzeStatement(statement, context) {
-    if (typeof statement === "string") {
+    if (typeof statement === 'string') {
       return
     }
     if (statement instanceof core.PrepDecl) {
@@ -306,7 +304,7 @@ export default function analyze(program) {
       recipeContext.add(param.name, {
         type: param.type,
         mutable: false,
-        kind: "variable",
+        kind: 'variable',
       })
     }
 
@@ -316,7 +314,7 @@ export default function analyze(program) {
       must(
         alwaysServes(statement.body),
         Error,
-        `FlowError: recipe '${statement.name}' missing serve on some paths`
+        `FlowError: recipe '${statement.name}' missing serve on some paths`,
       )
     }
     currentReturnType = oldReturnType
@@ -329,7 +327,7 @@ export default function analyze(program) {
       must(
         typeEqual(statement.type, initializerType),
         TypeError,
-        `cannot assign ${describe(initializerType)} to ${describe(statement.type)}`
+        `cannot assign ${describe(initializerType)} to ${describe(statement.type)}`,
       )
     } else {
       statement.type = initializerType
@@ -338,7 +336,7 @@ export default function analyze(program) {
     context.add(statement.name, {
       type: statement.type,
       mutable: statement.mutable,
-      kind: "variable",
+      kind: 'variable',
     })
   }
 
@@ -356,25 +354,25 @@ export default function analyze(program) {
       must(
         statement.expression === null,
         TypeError,
-        "serve with expression not valid in yields nothing recipe"
+        'serve with expression not valid in yields nothing recipe',
       )
       statement.type = NOTHING
       return
     }
 
-    must(statement.expression !== null, TypeError, "serve expression required")
+    must(statement.expression !== null, TypeError, 'serve expression required')
     const expressionType = analyzeExpression(statement.expression, context)
     must(
       typeEqual(currentReturnType, expressionType),
       TypeError,
-      `serve expected ${describe(currentReturnType)} but got ${describe(expressionType)}`
+      `serve expected ${describe(currentReturnType)} but got ${describe(expressionType)}`,
     )
     statement.type = expressionType
   }
 
   function analyzeTaste(statement, context) {
     const conditionType = analyzeExpression(statement.condition, context)
-    must(isTruth(conditionType), TypeError, "taste condition must be truth")
+    must(isTruth(conditionType), TypeError, 'taste condition must be truth')
     analyzeBlock(statement.consequent, context.newChildContext())
     if (statement.alternate) {
       analyzeBlock(statement.alternate, context.newChildContext())
@@ -383,7 +381,7 @@ export default function analyze(program) {
 
   function analyzeSimmer(statement, context) {
     const conditionType = analyzeExpression(statement.condition, context)
-    must(isTruth(conditionType), TypeError, "simmer condition must be truth")
+    must(isTruth(conditionType), TypeError, 'simmer condition must be truth')
     const oldInLoop = inLoop
     inLoop = true
     analyzeBlock(statement.body, context.newChildContext())
@@ -395,13 +393,13 @@ export default function analyze(program) {
     must(
       collectionType instanceof core.CollectionType,
       TypeError,
-      "batch source must be a collection"
+      'batch source must be a collection',
     )
     const bodyContext = context.newChildContext()
     bodyContext.add(statement.varName, {
       type: collectionType.elementType,
       mutable: false,
-      kind: "variable",
+      kind: 'variable',
     })
     const oldInLoop = inLoop
     inLoop = true
@@ -436,7 +434,7 @@ export default function analyze(program) {
     }
     if (expression instanceof core.IdRef) {
       const entity = context.lookup(expression.name)
-      must(entity.kind === "variable", TypeError, `'${expression.name}' is not a value`)
+      must(entity.kind === 'variable', TypeError, `'${expression.name}' is not a value`)
       expression.type = entity.type
       return expression.type
     }
@@ -467,42 +465,42 @@ export default function analyze(program) {
     const leftType = analyzeExpression(expression.left, context)
     const rightType = analyzeExpression(expression.right, context)
 
-    if (["+", "-", "*", "/"].includes(expression.op)) {
+    if (['+', '-', '*', '/'].includes(expression.op)) {
       expression.type = resultUnit(expression.op, leftType, rightType)
       return expression.type
     }
-    if (expression.op === "%") {
+    if (expression.op === '%') {
       must(
         isScalar(leftType) && isScalar(rightType),
         TypeError,
-        `% requires count or amount operands`
+        `% requires count or amount operands`,
       )
       expression.type = widerScalar(leftType, rightType)
       return expression.type
     }
-    if (["<", ">", "<=", ">="].includes(expression.op)) {
+    if (['<', '>', '<=', '>='].includes(expression.op)) {
       must(
         comparable(leftType, rightType),
         TypeError,
-        `cannot compare ${describe(leftType)} and ${describe(rightType)}`
+        `cannot compare ${describe(leftType)} and ${describe(rightType)}`,
       )
       expression.type = TRUTH
       return expression.type
     }
-    if (["==", "!="].includes(expression.op)) {
+    if (['==', '!='].includes(expression.op)) {
       must(
         typeEqual(leftType, rightType),
         TypeError,
-        `cannot compare ${describe(leftType)} and ${describe(rightType)}`
+        `cannot compare ${describe(leftType)} and ${describe(rightType)}`,
       )
       expression.type = TRUTH
       return expression.type
     }
-    if (["and", "or"].includes(expression.op)) {
+    if (['and', 'or'].includes(expression.op)) {
       must(
         isTruth(leftType) && isTruth(rightType),
         TypeError,
-        `${expression.op} requires truth operands`
+        `${expression.op} requires truth operands`,
       )
       expression.type = TRUTH
       return expression.type
@@ -511,15 +509,23 @@ export default function analyze(program) {
   }
 
   function analyzeAssignment(expression, context) {
-    must(expression.target instanceof core.IdRef, TypeError, "assignment target must be an identifier")
+    must(
+      expression.target instanceof core.IdRef,
+      TypeError,
+      'assignment target must be an identifier',
+    )
     const entity = context.lookup(expression.target.name)
-    must(entity.kind === "variable", TypeError, `'${expression.target.name}' is not a variable`)
-    must(entity.mutable, TypeError, `cannot assign to immutable ingredient '${expression.target.name}'`)
+    must(entity.kind === 'variable', TypeError, `'${expression.target.name}' is not a variable`)
+    must(
+      entity.mutable,
+      TypeError,
+      `cannot assign to immutable ingredient '${expression.target.name}'`,
+    )
     const rightType = analyzeExpression(expression.source, context)
     must(
       typeEqual(entity.type, rightType),
       TypeError,
-      `cannot assign ${describe(rightType)} to ${describe(entity.type)}`
+      `cannot assign ${describe(rightType)} to ${describe(entity.type)}`,
     )
     expression.target.type = entity.type
     expression.type = rightType
@@ -528,13 +534,13 @@ export default function analyze(program) {
 
   function analyzeUnary(expression, context) {
     const operandType = analyzeExpression(expression.operand, context)
-    if (expression.op === "not") {
-      must(isTruth(operandType), TypeError, "not requires truth operand")
+    if (expression.op === 'not') {
+      must(isTruth(operandType), TypeError, 'not requires truth operand')
       expression.type = TRUTH
       return expression.type
     }
-    if (expression.op === "-") {
-      must(isNumeric(operandType), TypeError, "negation requires numeric operand")
+    if (expression.op === '-') {
+      must(isNumeric(operandType), TypeError, 'negation requires numeric operand')
       expression.type = operandType
       return expression.type
     }
@@ -547,13 +553,13 @@ export default function analyze(program) {
       return expression.type
     }
 
-    must(expression.callee instanceof core.IdRef, TypeError, "callee must be a recipe name")
+    must(expression.callee instanceof core.IdRef, TypeError, 'callee must be a recipe name')
     const entity = context.lookup(expression.callee.name)
-    must(entity.kind === "recipe", TypeError, `'${expression.callee.name}' is not a recipe`)
+    must(entity.kind === 'recipe', TypeError, `'${expression.callee.name}' is not a recipe`)
     must(
       expression.args.length === entity.params.length,
       TypeError,
-      `recipe '${expression.callee.name}' expects ${entity.params.length} arguments but got ${expression.args.length}`
+      `recipe '${expression.callee.name}' expects ${entity.params.length} arguments but got ${expression.args.length}`,
     )
 
     expression.args.forEach((arg, index) => {
@@ -562,7 +568,7 @@ export default function analyze(program) {
       must(
         typeEqual(paramType, argType),
         TypeError,
-        `recipe '${expression.callee.name}' argument ${index + 1} expected ${describe(paramType)} but got ${describe(argType)}`
+        `recipe '${expression.callee.name}' argument ${index + 1} expected ${describe(paramType)} but got ${describe(argType)}`,
       )
     })
     expression.type = entity.returnType
@@ -570,35 +576,47 @@ export default function analyze(program) {
   }
 
   function isBuiltin(name) {
-    return ["display", "mix", "size", "convert"].includes(name)
+    return ['display', 'mix', 'size', 'convert'].includes(name)
   }
 
   function analyzeBuiltinCall(name, args, context) {
-    if (name === "display") {
-      must(args.length === 1, TypeError, "display expects 1 argument")
+    if (name === 'display') {
+      must(args.length === 1, TypeError, 'display expects 1 argument')
       analyzeExpression(args[0], context)
       return NOTHING
     }
-    if (name === "mix") {
-      must(args.length === 2, TypeError, "mix expects 2 arguments")
+    if (name === 'mix') {
+      must(args.length === 2, TypeError, 'mix expects 2 arguments')
       args.forEach((arg) => analyzeExpression(arg, context))
       return NOTHING
     }
-    if (name === "size") {
-      must(args.length === 1, TypeError, "size expects 1 argument")
+    if (name === 'size') {
+      must(args.length === 1, TypeError, 'size expects 1 argument')
       const argType = analyzeExpression(args[0], context)
-      must(argType instanceof core.CollectionType, TypeError, "size expects a collection")
+      must(argType instanceof core.CollectionType, TypeError, 'size expects a collection')
       return COUNT
     }
-    must(args.length === 2, TypeError, "convert expects 2 arguments")
+    must(args.length === 2, TypeError, 'convert expects 2 arguments')
     const valueType = analyzeExpression(args[0], context)
     const targetType = analyzeExpression(args[1], context)
-    must(isUnit(valueType), TypeError, "convert value must be a unit")
-    must(targetType instanceof core.PrimitiveType && targetType.name === "label", TypeError, "convert target must be a label")
-    must(args[1] instanceof core.StringLit, TypeError, "convert target must be a unit label literal")
+    must(isUnit(valueType), TypeError, 'convert value must be a unit')
+    must(
+      targetType instanceof core.PrimitiveType && targetType.name === 'label',
+      TypeError,
+      'convert target must be a label',
+    )
+    must(
+      args[1] instanceof core.StringLit,
+      TypeError,
+      'convert target must be a unit label literal',
+    )
     const targetUnit = normalizedUnit(args[1].value)
     must(UNIT_NAMES.has(targetUnit), TypeError, `unknown unit '${args[1].value}'`)
-    must(unitsCompatible(valueType.name, targetUnit), TypeError, `cannot convert ${describe(valueType)} to ${targetUnit}`)
+    must(
+      unitsCompatible(valueType.name, targetUnit),
+      TypeError,
+      `cannot convert ${describe(valueType)} to ${targetUnit}`,
+    )
     args[1].unit = targetUnit
     return new UnitType(targetUnit)
   }
@@ -608,14 +626,14 @@ export default function analyze(program) {
     must(
       objectType instanceof core.UserDefinedType,
       TypeError,
-      `cannot access field '${expression.field}' on ${describe(objectType)}`
+      `cannot access field '${expression.field}' on ${describe(objectType)}`,
     )
     const entity = root.lookup(objectType.name)
-    must(entity.kind === "prep", TypeError, `'${objectType.name}' is not a prep type`)
+    must(entity.kind === 'prep', TypeError, `'${objectType.name}' is not a prep type`)
     must(
       entity.fields.has(expression.field),
       TypeError,
-      `prep '${objectType.name}' has no field '${expression.field}'`
+      `prep '${objectType.name}' has no field '${expression.field}'`,
     )
     expression.type = entity.fields.get(expression.field)
     return expression.type
@@ -624,22 +642,26 @@ export default function analyze(program) {
   function analyzeIndexAccess(expression, context) {
     const collectionType = analyzeExpression(expression.collection, context)
     const indexType = analyzeExpression(expression.index, context)
-    must(collectionType instanceof core.CollectionType, TypeError, "index access requires a collection")
-    must(typeEqual(indexType, COUNT), TypeError, "collection index must be count")
+    must(
+      collectionType instanceof core.CollectionType,
+      TypeError,
+      'index access requires a collection',
+    )
+    must(typeEqual(indexType, COUNT), TypeError, 'collection index must be count')
     expression.type = collectionType.elementType
     return expression.type
   }
 
   function analyzeStructLit(expression, context) {
     const entity = root.lookup(expression.typeName)
-    must(entity.kind === "prep", TypeError, `'${expression.typeName}' is not a prep type`)
+    must(entity.kind === 'prep', TypeError, `'${expression.typeName}' is not a prep type`)
     const seen = new Set()
 
     for (const field of expression.fields) {
       must(
         entity.fields.has(field.name),
         TypeError,
-        `prep '${expression.typeName}' has no field '${field.name}'`
+        `prep '${expression.typeName}' has no field '${field.name}'`,
       )
       must(!seen.has(field.name), TypeError, `duplicate field '${field.name}'`)
       seen.add(field.name)
@@ -648,7 +670,7 @@ export default function analyze(program) {
       must(
         typeEqual(expectedType, valueType),
         TypeError,
-        `field '${field.name}' expected ${describe(expectedType)} but got ${describe(valueType)}`
+        `field '${field.name}' expected ${describe(expectedType)} but got ${describe(valueType)}`,
       )
     }
 
@@ -668,11 +690,7 @@ export default function analyze(program) {
     }
     const firstType = elementTypes[0]
     for (const elementType of elementTypes.slice(1)) {
-      must(
-        typeEqual(firstType, elementType),
-        TypeError,
-        `collection elements must have same type`
-      )
+      must(typeEqual(firstType, elementType), TypeError, `collection elements must have same type`)
     }
     expression.type = new core.CollectionType(firstType)
     return expression.type

@@ -1,7 +1,7 @@
-import fs from "fs"
-import * as ohm from "ohm-js"
-import path from "path"
-import * as core from "./core.js"
+import fs from 'fs'
+import * as ohm from 'ohm-js'
+import path from 'path'
+import * as core from './core.js'
 
 /* istanbul ignore next -- This is a host-environment fallback for CLI/import locations, not language behavior. */
 function findGrammarPath() {
@@ -10,28 +10,28 @@ function findGrammarPath() {
     ? path.dirname(decodeURIComponent(stackPath).replace(/\//g, path.sep))
     : null
   const candidates = [
-    moduleDir && path.join(moduleDir, "fling.ohm"),
-    path.join(process.cwd(), "src", "fling.ohm"),
+    moduleDir && path.join(moduleDir, 'fling.ohm'),
+    path.join(process.cwd(), 'src', 'fling.ohm'),
   ].filter(Boolean)
   return candidates.find((candidate) => fs.existsSync(candidate))
 }
 
 const grammarPath = findGrammarPath()
-const grammar = ohm.grammar(fs.readFileSync(grammarPath, "utf-8"))
+const grammar = ohm.grammar(fs.readFileSync(grammarPath, 'utf-8'))
 
 const semantics = grammar.createSemantics()
-let currentSource = ""
+let currentSource = ''
 
 function optional(node) {
   return node.children.length === 0 ? null : node.child(0).rep()
 }
 
 function columnOf(node) {
-  const lineStart = currentSource.lastIndexOf("\n", node.source.startIdx - 1) + 1
+  const lineStart = currentSource.lastIndexOf('\n', node.source.startIdx - 1) + 1
   return node.source.startIdx - lineStart
 }
 
-semantics.addOperation("rep", {
+semantics.addOperation('rep', {
   Program(_leadingNewlines, topLevels, _trailingNewlines) {
     return new core.Program(topLevels.children.map((topLevel) => topLevel.rep()))
   },
@@ -61,7 +61,7 @@ semantics.addOperation("rep", {
   PrepDecl(_prep, _gap, name, _spaces1, _colon, _newlines, fields) {
     return new core.PrepDecl(
       name.rep(),
-      fields.children.map((field) => field.rep())
+      fields.children.map((field) => field.rep()),
     )
   },
   PrepField(_indent, name, _spaces1, _colon, _spaces2, type, _terminator) {
@@ -88,14 +88,9 @@ semantics.addOperation("rep", {
     returnType,
     _spaces4,
     _colon,
-    body
+    body,
   ) {
-    return new core.RecipeDecl(
-      name.rep(),
-      params.rep(),
-      returnType.rep(),
-      body.rep()
-    )
+    return new core.RecipeDecl(name.rep(), params.rep(), returnType.rep(), body.rep())
   },
   Params(params) {
     return params.rep()
@@ -114,13 +109,13 @@ semantics.addOperation("rep", {
     _spaces1,
     _eq,
     _spaces2,
-    initializer
+    initializer,
   ) {
     return new core.IngredientDecl(
       name.rep(),
       optional(type),
       initializer.rep(),
-      stirringKeyword.sourceString.length > 0
+      stirringKeyword.sourceString.length > 0,
     )
   },
   TypeAnnotation(_spaces1, _colon, _spaces2, type) {
@@ -325,22 +320,22 @@ semantics.addOperation("rep", {
 
   UnitLit(_unitlit) {
     const unit = [
-      "fahrenheit",
-      "celsius",
-      "minutes",
-      "seconds",
-      "liters",
-      "grams",
-      "hours",
-      "cups",
-      "tbsp",
-      "tsp",
-      "floz",
-      "lbs",
-      "kg",
-      "oz",
-      "ml",
-      "g",
+      'fahrenheit',
+      'celsius',
+      'minutes',
+      'seconds',
+      'liters',
+      'grams',
+      'hours',
+      'cups',
+      'tbsp',
+      'tsp',
+      'floz',
+      'lbs',
+      'kg',
+      'oz',
+      'ml',
+      'g',
     ].find((suffix) => this.sourceString.endsWith(suffix))
     return new core.UnitLit(Number(this.sourceString.slice(0, -unit.length)), unit)
   },
@@ -353,7 +348,7 @@ semantics.addOperation("rep", {
     return this.sourceString
   },
   boollit(_value) {
-    return new core.BoolLit(this.sourceString === "yes")
+    return new core.BoolLit(this.sourceString === 'yes')
   },
   intlit(_digits) {
     return new core.IntLit(Number(this.sourceString))

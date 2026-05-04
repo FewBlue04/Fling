@@ -1,28 +1,28 @@
-import * as core from "./core.js"
+import * as core from './core.js'
 
 const DIMENSION = {
-  grams: "weight",
-  kg: "weight",
-  oz: "weight",
-  lbs: "weight",
-  ml: "volume",
-  liters: "volume",
-  cups: "volume",
-  tbsp: "volume",
-  tsp: "volume",
-  floz: "volume",
-  celsius: "temperature",
-  fahrenheit: "temperature",
-  seconds: "time",
-  minutes: "time",
-  hours: "time",
+  grams: 'weight',
+  kg: 'weight',
+  oz: 'weight',
+  lbs: 'weight',
+  ml: 'volume',
+  liters: 'volume',
+  cups: 'volume',
+  tbsp: 'volume',
+  tsp: 'volume',
+  floz: 'volume',
+  celsius: 'temperature',
+  fahrenheit: 'temperature',
+  seconds: 'time',
+  minutes: 'time',
+  hours: 'time',
 }
 
 const BASE_UNIT = {
-  weight: "grams",
-  volume: "ml",
-  temperature: "celsius",
-  time: "seconds",
+  weight: 'grams',
+  volume: 'ml',
+  temperature: 'celsius',
+  time: 'seconds',
 }
 
 const TO_BASE = {
@@ -44,7 +44,7 @@ const TO_BASE = {
 }
 
 const UNIT_ALIASES = {
-  g: "grams",
+  g: 'grams',
 }
 
 export default function optimize(program) {
@@ -117,28 +117,28 @@ export default function optimize(program) {
     const { op, left, right } = node
 
     if (left instanceof core.BoolLit && right instanceof core.BoolLit) {
-      if (op === "and") {
+      if (op === 'and') {
         return copyType(new core.BoolLit(left.value && right.value), node)
       }
-      if (op === "or") {
+      if (op === 'or') {
         return copyType(new core.BoolLit(left.value || right.value), node)
       }
     }
 
     if (isNumericLiteral(left) && isNumericLiteral(right)) {
-      if (op === "+") {
+      if (op === '+') {
         return copyType(numericLiteral(numberValue(left) + numberValue(right), left, right), node)
       }
-      if (op === "-") {
+      if (op === '-') {
         return copyType(numericLiteral(numberValue(left) - numberValue(right), left, right), node)
       }
-      if (op === "*") {
+      if (op === '*') {
         return copyType(numericLiteral(numberValue(left) * numberValue(right), left, right), node)
       }
-      if (op === "/") {
+      if (op === '/') {
         return copyType(numericLiteral(numberValue(left) / numberValue(right), left, right), node)
       }
-      if (op === "%") {
+      if (op === '%') {
         return copyType(numericLiteral(numberValue(left) % numberValue(right), left, right), node)
       }
     }
@@ -147,19 +147,20 @@ export default function optimize(program) {
       left instanceof core.UnitLit &&
       right instanceof core.UnitLit &&
       compatibleUnits(left, right) &&
-      ["+", "-"].includes(op) &&
+      ['+', '-'].includes(op) &&
       unitCanNormalize(left.unit) &&
       unitCanNormalize(right.unit)
     ) {
-      const value = op === "+" ? baseValue(left) + baseValue(right) : baseValue(left) - baseValue(right)
+      const value =
+        op === '+' ? baseValue(left) + baseValue(right) : baseValue(left) - baseValue(right)
       return copyType(new core.UnitLit(value, baseUnit(left)), node)
     }
 
-    if (left instanceof core.UnitLit && isNumericLiteral(right) && op === "*") {
+    if (left instanceof core.UnitLit && isNumericLiteral(right) && op === '*') {
       return copyType(new core.UnitLit(left.value * right.value, left.unit), node)
     }
 
-    if (isNumericLiteral(left) && right instanceof core.UnitLit && op === "*") {
+    if (isNumericLiteral(left) && right instanceof core.UnitLit && op === '*') {
       return copyType(new core.UnitLit(left.value * right.value, right.unit), node)
     }
 
@@ -167,38 +168,38 @@ export default function optimize(program) {
   }
 
   function foldUnary(node) {
-    if (node.op === "not" && node.operand instanceof core.BoolLit) {
+    if (node.op === 'not' && node.operand instanceof core.BoolLit) {
       return copyType(new core.BoolLit(!node.operand.value), node)
     }
-    if (node.op === "-" && node.operand instanceof core.IntLit) {
+    if (node.op === '-' && node.operand instanceof core.IntLit) {
       return copyType(new core.IntLit(-node.operand.value), node)
     }
-    if (node.op === "-" && node.operand instanceof core.FloatLit) {
+    if (node.op === '-' && node.operand instanceof core.FloatLit) {
       return copyType(new core.FloatLit(-node.operand.value), node)
     }
-    if (node.op === "-" && node.operand instanceof core.UnitLit) {
+    if (node.op === '-' && node.operand instanceof core.UnitLit) {
       return copyType(new core.UnitLit(-node.operand.value, node.operand.unit), node)
     }
     return node
   }
 
   function reduceStrength(node) {
-    if (node.op === "*" && isOne(node.right)) {
+    if (node.op === '*' && isOne(node.right)) {
       return node.left
     }
-    if (node.op === "*" && isOne(node.left)) {
+    if (node.op === '*' && isOne(node.left)) {
       return node.right
     }
-    if (node.op === "+" && isZero(node.right)) {
+    if (node.op === '+' && isZero(node.right)) {
       return node.left
     }
-    if (node.op === "+" && isZero(node.left)) {
+    if (node.op === '+' && isZero(node.left)) {
       return node.right
     }
-    if (node.op === "*" && node.right instanceof core.IntLit && node.right.value === 0) {
+    if (node.op === '*' && node.right instanceof core.IntLit && node.right.value === 0) {
       return copyType(new core.IntLit(0), node)
     }
-    if (node.op === "*" && node.left instanceof core.IntLit && node.left.value === 0) {
+    if (node.op === '*' && node.left instanceof core.IntLit && node.left.value === 0) {
       return copyType(new core.IntLit(0), node)
     }
     return node
@@ -210,14 +211,14 @@ export default function optimize(program) {
 
     for (const statement of statements) {
       if (unreachable) {
-        console.error("Warning: unreachable statement removed after serve")
+        console.error('Warning: unreachable statement removed after serve')
         continue
       }
 
       const replacement = optimizeStatement(statement)
       const replacements = Array.isArray(replacement) ? replacement : [replacement]
       for (const item of replacements) {
-        if (item === null || item === "") {
+        if (item === null || item === '') {
           continue
         }
         optimized.push(item)
@@ -231,7 +232,7 @@ export default function optimize(program) {
   }
 
   function optimizeStatement(statement) {
-    if (typeof statement === "string") {
+    if (typeof statement === 'string') {
       return statement
     }
     if (statement instanceof core.PrepDecl) {
@@ -245,7 +246,7 @@ export default function optimize(program) {
         statement.name,
         statement.params,
         statement.returnType,
-        optimizeBlock(statement.body)
+        optimizeBlock(statement.body),
       )
     }
     if (statement instanceof core.IngredientDecl) {
@@ -253,14 +254,18 @@ export default function optimize(program) {
         statement.name,
         statement.type,
         optimizeExpression(statement.initializer),
-        statement.mutable
+        statement.mutable,
       )
     }
     if (statement instanceof core.StepStmt) {
-      return copyType(new core.StepStmt(statement.name, optimizeExpression(statement.expression)), statement)
+      return copyType(
+        new core.StepStmt(statement.name, optimizeExpression(statement.expression)),
+        statement,
+      )
     }
     if (statement instanceof core.ServeStmt) {
-      const expression = statement.expression === null ? null : optimizeExpression(statement.expression)
+      const expression =
+        statement.expression === null ? null : optimizeExpression(statement.expression)
       return copyType(new core.ServeStmt(expression), statement)
     }
     if (statement instanceof core.TasteStmt) {
@@ -268,18 +273,21 @@ export default function optimize(program) {
       const consequent = optimizeBlock(statement.consequent)
       const alternate = statement.alternate === null ? null : optimizeBlock(statement.alternate)
       if (condition instanceof core.BoolLit) {
-        return condition.value ? consequent : alternate ?? []
+        return condition.value ? consequent : (alternate ?? [])
       }
       return new core.TasteStmt(condition, consequent, alternate)
     }
     if (statement instanceof core.SimmerStmt) {
-      return new core.SimmerStmt(optimizeExpression(statement.condition), optimizeBlock(statement.body))
+      return new core.SimmerStmt(
+        optimizeExpression(statement.condition),
+        optimizeBlock(statement.body),
+      )
     }
     if (statement instanceof core.BatchStmt) {
       return new core.BatchStmt(
         statement.varName,
         optimizeExpression(statement.collection),
-        optimizeBlock(statement.body)
+        optimizeBlock(statement.body),
       )
     }
     if (statement instanceof core.TossStmt) {
@@ -300,26 +308,28 @@ export default function optimize(program) {
         new core.BinaryExp(
           expression.op,
           optimizeExpression(expression.left),
-          optimizeExpression(expression.right)
+          optimizeExpression(expression.right),
         ),
-        expression
+        expression,
       )
       const reduced = reduceStrength(optimized)
       if (reduced !== optimized) {
         return reduced
       }
-      return isLiteral(optimized.left) && isLiteral(optimized.right) ? foldBinary(optimized) : optimized
+      return isLiteral(optimized.left) && isLiteral(optimized.right)
+        ? foldBinary(optimized)
+        : optimized
     }
     if (expression instanceof core.Assignment) {
       return copyType(
         new core.Assignment(expression.target, optimizeExpression(expression.source)),
-        expression
+        expression,
       )
     }
     if (expression instanceof core.UnaryExp) {
       const optimized = copyType(
         new core.UnaryExp(expression.op, optimizeExpression(expression.operand)),
-        expression
+        expression,
       )
       return isLiteral(optimized.operand) ? foldUnary(optimized) : optimized
     }
@@ -327,24 +337,24 @@ export default function optimize(program) {
       return copyType(
         new core.CallExp(
           optimizeExpression(expression.callee),
-          expression.args.map((arg) => optimizeExpression(arg))
+          expression.args.map((arg) => optimizeExpression(arg)),
         ),
-        expression
+        expression,
       )
     }
     if (expression instanceof core.FieldAccessExp) {
       return copyType(
         new core.FieldAccessExp(optimizeExpression(expression.object), expression.field),
-        expression
+        expression,
       )
     }
     if (expression instanceof core.IndexAccessExp) {
       return copyType(
         new core.IndexAccessExp(
           optimizeExpression(expression.collection),
-          optimizeExpression(expression.index)
+          optimizeExpression(expression.index),
         ),
-        expression
+        expression,
       )
     }
     if (expression instanceof core.StructLit) {
@@ -357,11 +367,14 @@ export default function optimize(program) {
     if (expression instanceof core.CollectionLit) {
       return copyType(
         new core.CollectionLit(expression.elements.map((element) => optimizeExpression(element))),
-        expression
+        expression,
       )
     }
     if (expression instanceof core.UnitLit) {
-      return copyType(new core.UnitLit(expression.value, normalizedUnit(expression.unit)), expression)
+      return copyType(
+        new core.UnitLit(expression.value, normalizedUnit(expression.unit)),
+        expression,
+      )
     }
     if (expression instanceof core.IntLit) {
       return copyType(new core.IntLit(expression.value), expression)

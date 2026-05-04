@@ -1,0 +1,1132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Fling is a recipe-themed programming language with compile-time unit types, static checks, and readable JavaScript output.">
+  <title>Fling Programming Language</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #FAFCFF;
+      --paper: #FFFFFF;
+      --soft-blue: #EBF4FB;
+      --accent: #4FA8D5;
+      --accent-dark: #1B6FA8;
+      --ink: #163044;
+      --muted: #5D7284;
+      --line: #D9EAF5;
+      --code-bg: #1E1E2E;
+      --code-text: #88C0D0;
+      --shadow: 0 16px 45px rgba(27, 111, 168, 0.12);
+      --shadow-soft: 0 10px 28px rgba(27, 111, 168, 0.09);
+      --radius: 18px;
+      --max: 1160px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      scroll-padding-top: 92px;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.65;
+    }
+
+    img {
+      max-width: 100%;
+      display: block;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .site-nav {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background: rgba(255, 255, 255, 0.94);
+      box-shadow: 0 4px 24px rgba(27, 111, 168, 0.1);
+      backdrop-filter: blur(16px);
+    }
+
+    .nav-inner {
+      width: min(var(--max), calc(100% - 40px));
+      margin: 0 auto;
+      min-height: 76px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 800;
+      color: var(--accent-dark);
+      letter-spacing: 0;
+    }
+
+    .brand img {
+      height: 50px;
+      width: 50px;
+      object-fit: contain;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 24px;
+      flex-wrap: wrap;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--muted);
+    }
+
+    .nav-links a {
+      position: relative;
+      padding: 24px 0 20px;
+    }
+
+    .nav-links a::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 16px;
+      height: 3px;
+      border-radius: 999px;
+      background: var(--accent);
+      transform: scaleX(0);
+      transform-origin: center;
+      transition: transform 180ms ease;
+    }
+
+    .nav-links a:hover,
+    .nav-links a:focus-visible {
+      color: var(--accent-dark);
+    }
+
+    .nav-links a:hover::after,
+    .nav-links a:focus-visible::after {
+      transform: scaleX(1);
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #EBF4FB 0%, #FFFFFF 100%);
+      padding: 108px 20px 118px;
+      text-align: center;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .hero-logo {
+      height: 180px;
+      width: 180px;
+      object-fit: contain;
+      margin: 0 auto 22px;
+      filter: drop-shadow(0 18px 28px rgba(27, 111, 168, 0.18));
+    }
+
+    h1,
+    h2,
+    h3 {
+      margin: 0;
+      color: var(--accent-dark);
+      line-height: 1.12;
+      letter-spacing: 0;
+    }
+
+    h1 {
+      font-size: clamp(4rem, 9vw, 7.25rem);
+      font-weight: 800;
+    }
+
+    h2 {
+      font-size: clamp(2.2rem, 5vw, 3.7rem);
+      font-weight: 800;
+      text-align: center;
+      margin-bottom: 22px;
+    }
+
+    h3 {
+      font-size: 1.25rem;
+      font-weight: 800;
+    }
+
+    .hero p {
+      max-width: 760px;
+      margin: 18px auto 34px;
+      font-size: clamp(1.1rem, 2.3vw, 1.45rem);
+      color: var(--muted);
+    }
+
+    .button-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 48px;
+      padding: 12px 22px;
+      border-radius: 999px;
+      border: 2px solid var(--accent);
+      background: var(--accent);
+      color: #FFFFFF;
+      font-weight: 800;
+      box-shadow: 0 14px 30px rgba(79, 168, 213, 0.24);
+      transition: transform 180ms ease, box-shadow 180ms ease, background 180ms ease;
+    }
+
+    .button:hover,
+    .button:focus-visible {
+      transform: translateY(-2px);
+      box-shadow: 0 18px 36px rgba(79, 168, 213, 0.32);
+      background: #3F99C8;
+    }
+
+    .button.secondary {
+      background: #FFFFFF;
+      color: var(--accent-dark);
+      box-shadow: 0 12px 24px rgba(27, 111, 168, 0.1);
+    }
+
+    section {
+      padding: 88px 20px;
+    }
+
+    .container {
+      width: min(var(--max), 100%);
+      margin: 0 auto;
+    }
+
+    .section-subtitle {
+      margin: -8px auto 36px;
+      max-width: 720px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 1.08rem;
+    }
+
+    .story {
+      max-width: 920px;
+      margin: 0 auto;
+      display: grid;
+      gap: 22px;
+      font-size: 1.08rem;
+      color: #31495C;
+    }
+
+    .story p {
+      margin: 0;
+      background: var(--paper);
+      padding: 26px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-soft);
+    }
+
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 22px;
+      margin-top: 40px;
+    }
+
+    .feature-card,
+    .check-card,
+    .bio-card {
+      background: var(--paper);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-soft);
+    }
+
+    .feature-card {
+      padding: 28px;
+      border: 1px solid var(--line);
+      border-top: 6px solid var(--accent);
+      min-height: 238px;
+    }
+
+    .feature-card .emoji {
+      font-size: 2.4rem;
+      line-height: 1;
+      margin-bottom: 18px;
+    }
+
+    .feature-card p,
+    .check-card li,
+    .bio-card p {
+      color: var(--muted);
+    }
+
+    .feature-card p {
+      margin: 12px 0 0;
+    }
+
+    .examples {
+      background: #FFFFFF;
+      border-block: 1px solid var(--line);
+    }
+
+    .example-list {
+      display: grid;
+      gap: 48px;
+    }
+
+    .example-header {
+      margin-bottom: 18px;
+    }
+
+    .example-header p {
+      margin: 8px 0 0;
+      color: var(--muted);
+    }
+
+    .code-pair {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 20px;
+      align-items: stretch;
+    }
+
+    .code-panel {
+      background: var(--code-bg);
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(136, 192, 208, 0.18);
+    }
+
+    .code-panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px 16px;
+      background: rgba(255, 255, 255, 0.05);
+      border-bottom: 1px solid rgba(136, 192, 208, 0.16);
+      color: #E6F7FC;
+      font-weight: 800;
+    }
+
+    .copy-btn {
+      border: 1px solid rgba(136, 192, 208, 0.38);
+      background: rgba(136, 192, 208, 0.12);
+      color: #E6F7FC;
+      border-radius: 999px;
+      padding: 7px 12px;
+      font: 700 0.78rem "Inter", sans-serif;
+      cursor: pointer;
+      transition: background 160ms ease, border-color 160ms ease;
+      white-space: nowrap;
+    }
+
+    .copy-btn:hover,
+    .copy-btn:focus-visible {
+      background: rgba(136, 192, 208, 0.22);
+      border-color: rgba(136, 192, 208, 0.7);
+    }
+
+    pre {
+      margin: 0;
+      padding: 20px;
+      overflow-x: auto;
+      color: var(--code-text);
+      font: 500 0.92rem/1.7 "Fira Code", Consolas, monospace;
+      tab-size: 2;
+    }
+
+    code {
+      font-family: "Fira Code", Consolas, monospace;
+    }
+
+    .units-intro {
+      max-width: 820px;
+      margin: 0 auto 34px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 1.08rem;
+    }
+
+    .unit-table-wrap {
+      overflow-x: auto;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-soft);
+      border: 1px solid var(--line);
+      background: var(--paper);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 620px;
+    }
+
+    th,
+    td {
+      padding: 18px 22px;
+      text-align: left;
+      border-bottom: 1px solid var(--line);
+    }
+
+    th {
+      background: var(--accent);
+      color: #FFFFFF;
+      font-weight: 800;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    td:first-child {
+      color: var(--accent-dark);
+      font-weight: 800;
+    }
+
+    .pill-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 22px;
+      margin-top: 30px;
+    }
+
+    .pill-column {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 24px;
+      box-shadow: var(--shadow-soft);
+    }
+
+    .pill-column h3 {
+      margin-bottom: 14px;
+    }
+
+    .pill-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .pill {
+      display: block;
+      padding: 12px 14px;
+      border-radius: 999px;
+      background: #F2F9FD;
+      border: 1px solid var(--line);
+      color: #31495C;
+      font-weight: 700;
+      font-size: 0.95rem;
+    }
+
+    .checks {
+      background: #FFFFFF;
+      border-block: 1px solid var(--line);
+    }
+
+    .check-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 22px;
+      margin-top: 36px;
+    }
+
+    .check-card {
+      padding: 26px 28px;
+      border: 1px solid var(--line);
+      border-left: 6px solid var(--accent);
+    }
+
+    .check-card ul {
+      margin: 16px 0 0;
+      padding-left: 20px;
+    }
+
+    .check-card li {
+      margin: 8px 0;
+    }
+
+    .docs-grid {
+      display: grid;
+      gap: 22px;
+      max-width: 880px;
+      margin: 36px auto 0;
+    }
+
+    .docs-grid .code-panel {
+      box-shadow: var(--shadow-soft);
+    }
+
+    .bio {
+      background: linear-gradient(180deg, #FAFCFF 0%, #FFFFFF 100%);
+      padding-top: 38px;
+    }
+
+    .bio-card {
+      max-width: 720px;
+      margin: 34px auto 0;
+      text-align: center;
+      padding: 36px;
+      border: 2px solid var(--line);
+      box-shadow: var(--shadow);
+    }
+
+    .bio-name {
+      display: block;
+      color: var(--accent-dark);
+      font-size: clamp(1.8rem, 4vw, 2.7rem);
+      font-weight: 800;
+      line-height: 1.1;
+      margin-bottom: 10px;
+    }
+
+    .bio-title,
+    .bio-school {
+      margin: 0;
+      color: var(--ink);
+      font-weight: 700;
+    }
+
+    .bio-school {
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    .bio-card p.bio-text {
+      margin: 24px auto 26px;
+      max-width: 580px;
+    }
+
+    footer {
+      background: #EBF4FB;
+      color: var(--accent-dark);
+      text-align: center;
+      padding: 42px 20px;
+    }
+
+    footer img {
+      height: 40px;
+      width: 40px;
+      object-fit: contain;
+      margin: 0 auto 14px;
+    }
+
+    footer p {
+      margin: 6px 0;
+      font-weight: 700;
+    }
+
+    .footer-links {
+      display: flex;
+      justify-content: center;
+      gap: 18px;
+      flex-wrap: wrap;
+      margin: 18px 0 10px;
+      font-weight: 800;
+    }
+
+    .footer-links a {
+      border-bottom: 2px solid rgba(79, 168, 213, 0.45);
+    }
+
+    .footer-links a:hover,
+    .footer-links a:focus-visible {
+      border-color: var(--accent-dark);
+    }
+
+    @media (max-width: 880px) {
+      .nav-inner {
+        min-height: auto;
+        padding: 12px 0;
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .nav-links {
+        width: 100%;
+        justify-content: flex-start;
+        gap: 8px 18px;
+      }
+
+      .nav-links a {
+        padding: 5px 0 8px;
+      }
+
+      .nav-links a::after {
+        bottom: 2px;
+      }
+
+      .feature-grid,
+      .code-pair,
+      .pill-grid,
+      .check-grid {
+        grid-template-columns: 1fr;
+      }
+
+      section {
+        padding: 70px 20px;
+      }
+
+      .hero {
+        padding-top: 80px;
+      }
+    }
+
+    @media (max-width: 520px) {
+      .nav-inner {
+        width: min(100% - 28px, var(--max));
+      }
+
+      .brand span {
+        font-size: 1.05rem;
+      }
+
+      .brand img {
+        height: 44px;
+        width: 44px;
+      }
+
+      .nav-links {
+        font-size: 0.88rem;
+      }
+
+      .hero-logo {
+        height: 150px;
+        width: 150px;
+      }
+
+      .button {
+        width: 100%;
+        max-width: 290px;
+      }
+
+      .feature-card,
+      .story p,
+      .check-card,
+      .pill-column,
+      .bio-card {
+        padding: 22px;
+      }
+
+      pre {
+        padding: 16px;
+        font-size: 0.82rem;
+      }
+
+      .code-panel-header {
+        padding: 12px;
+      }
+
+      .pill {
+        border-radius: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <nav class="site-nav" aria-label="Main navigation">
+    <div class="nav-inner">
+      <a class="brand" href="#top" aria-label="Fling home">
+        <img src="logo.png" alt="Fling logo">
+        <span>Fling</span>
+      </a>
+      <div class="nav-links">
+        <a href="#about">About</a>
+        <a href="#features">Features</a>
+        <a href="#examples">Examples</a>
+        <a href="#units">Units</a>
+        <a href="#checks">Checks</a>
+        <a href="#docs">Docs</a>
+      </div>
+    </div>
+  </nav>
+
+  <main id="top">
+    <header class="hero">
+      <img class="hero-logo" src="logo.png" alt="Fling logo">
+      <h1>Fling</h1>
+      <p>A recipe-themed language where your units actually mean something</p>
+      <div class="button-row">
+        <a class="button" href="https://github.com/FewBlue04/Fling">View on GitHub</a>
+        <a class="button secondary" href="#docs">Get Started</a>
+      </div>
+    </header>
+
+    <section id="about">
+      <div class="container">
+        <h2>The Story</h2>
+        <div class="story">
+          <p>Programming and cooking share the same DNA. You gather ingredients, follow a process, and yield something worth serving. Fling takes that metaphor seriously — programs are collections of recipes, variables are ingredients, and every function serves a result. The syntax reads like a recipe card, which means your code tells a story instead of just executing instructions.</p>
+          <p>Fling's killer feature is a compile-time unit type system. Values like 200g, 350ml, 2cups, and 35minutes aren't just numbers — they carry physical meaning the compiler understands. Add grams to grams and Fling is delighted. Add grams to milliliters and the compiler sends it straight back to the kitchen with a clear error before a single line of JavaScript is emitted.</p>
+          <p>Under the hood, Fling is a complete compiler pipeline: an Ohm.js grammar, a scope-aware semantic analyzer with 36 static checks, an AST optimizer with constant folding and dead code elimination, and a JavaScript code generator. It was built as a compiler design project at Loyola Marymount University, and compiles to clean, readable JavaScript you would actually want to read.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="features">
+      <div class="container">
+        <h2>What Fling Brings to the Kitchen</h2>
+        <div class="feature-grid">
+          <article class="feature-card">
+            <div class="emoji" aria-hidden="true">🧪</div>
+            <h3>Unit Type System</h3>
+            <p>grams, ml, cups, celsius, and minutes are compile-time types. Cross-dimension math is rejected before JavaScript is emitted.</p>
+          </article>
+          <article class="feature-card">
+            <div class="emoji" aria-hidden="true">🔒</div>
+            <h3>Statically Typed</h3>
+            <p>Every ingredient has a type. Recipes declare what they yield. 36 checks run at compile time.</p>
+          </article>
+          <article class="feature-card">
+            <div class="emoji" aria-hidden="true">🍳</div>
+            <h3>Recipe Syntax</h3>
+            <p>Functions are recipes. Variables are ingredients. Return is serve. Code reads like it cooks.</p>
+          </article>
+          <article class="feature-card">
+            <div class="emoji" aria-hidden="true">⚡</div>
+            <h3>Optimizer</h3>
+            <p>Constant folding, unit normalization, dead code elimination, and strength reduction built in.</p>
+          </article>
+          <article class="feature-card">
+            <div class="emoji" aria-hidden="true">🔁</div>
+            <h3>Rich Control Flow</h3>
+            <p>taste, simmer, batch, toss, skip — all statically checked for correct context.</p>
+          </article>
+          <article class="feature-card">
+            <div class="emoji" aria-hidden="true">📦</div>
+            <h3>Prep Types</h3>
+            <p>Structured data with named, typed fields. Struct literals are checked for completeness at compile time.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="examples" id="examples">
+      <div class="container">
+        <h2>Fling in Action</h2>
+        <p class="section-subtitle">Five complete programs covering every syntactic form</p>
+        <div class="example-list">
+          <article class="example">
+            <div class="example-header">
+              <h3>Example 1 — Hello World</h3>
+              <p>The simplest Fling program. An ingredient, a serve.</p>
+            </div>
+            <div class="code-pair">
+              <div class="code-panel">
+                <div class="code-panel-header">
+                  <span>Fling</span>
+                  <button class="copy-btn" type="button">Copy</button>
+                </div>
+                <pre><code>ingredient greeting: label = "Hello from Fling!"
+serve greeting</code></pre>
+              </div>
+              <div class="code-panel">
+                <div class="code-panel-header">
+                  <span>JavaScript</span>
+                  <button class="copy-btn" type="button">Copy</button>
+                </div>
+                <pre><code>const greeting = "Hello from Fling!";
+console.log(greeting);</code></pre>
+              </div>
+            </div>
+          </article>
+
+          <article class="example">
+            <div class="example-header">
+              <h3>Example 2 — Unit Types</h3>
+              <p>Unit literals carry physical meaning. The compiler checks every operation for dimensional compatibility.</p>
+            </div>
+            <div class="code-pair">
+              <div class="code-panel">
+                <div class="code-panel-header">
+                  <span>Fling</span>
+                  <button class="copy-btn" type="button">Copy</button>
+                </div>
+                <pre><code>ingredient flour: grams = 200g
+ingredient extra: grams = 100g
+ingredient total: grams = flour + extra
+serve total</code></pre>
+              </div>
+              <div class="code-panel">
+                <div class="code-panel-header">
+                  <span>JavaScript</span>
+                  <button class="copy-btn" type="button">Copy</button>
+                </div>
+                <pre><code>const flour = 200;
+const extra = 100;
+const total = (flour + extra);
+console.log(total);</code></pre>
+              </div>
+            </div>
+          </article>
+
+          <article class="example">
+            <div class="example-header">
+              <h3>Example 3 — Recipes and Prep Types</h3>
+              <p>Recipes are typed functions. Prep types are structs. Every field is checked at compile time.</p>
+            </div>
+            <div class="code-pair">
+              <div class="code-panel">
+                <div class="code-panel-header">
+                  <span>Fling</span>
+                  <button class="copy-btn" type="button">Copy</button>
+                </div>
+                <pre><code>prep Dough:
+  flour: grams
+  water: ml
+  salt: grams
+  yeast: grams
+
+recipe make_dough(flour_grams: grams, water_ml: ml) yields Dough:
+  ingredient salt_pinches: grams = 10g
+  ingredient yeast_scoop: grams = 7g
+  serve Dough { flour: flour_grams, water: water_ml, salt: salt_pinches, yeast: yeast_scoop }
+
+ingredient loaf = make_dough(500g, 325ml)
+serve loaf.flour</code></pre>
+              </div>
+              <div class="code-panel">
+                <div class="code-panel-header">
+                  <span>JavaScript</span>
+                  <button class="copy-btn" type="button">Copy</button>
+                </div>
+                <pre><code>function make_dough(flour_grams, water_ml) {
+  const salt_pinches = 10;
+  const yeast_scoop = 7;
+  return ({ flour: flour_grams, water: water_ml, 
+            salt: salt_pinches, yeast: yeast_scoop });
+}
+const loaf = make_dough(500, 325);
+console.log(loaf.flour);</code></pre>
+              </div>
+            </div>
+          </article>
+
+          <article class="example">
+            <div class="example-header">
+              <h3>Example 4 — Loops and Collections</h3>
+              <p>Batch loops iterate typed collections. Simmer loops run while a truth condition holds.</p>
+            </div>
+            <div class="code-pair">
+              <div class="code-panel">
+                <div class="code-panel-header">
+                  <span>Fling</span>
+                  <button class="copy-btn" type="button">Copy</button>
+                </div>
+                <pre><code>ingredient items: [label] = ["flour", "water", "salt", "yeast"]
+
+batch item in items:
+  step show: display(item)
+
+stirring ingredient count: count = 5
+simmer count > 0:
+  step show_count: display(count)
+  step decrement: count = count - 1
+  taste count == 0:
+    toss
+
+serve "Done"</code></pre>
+              </div>
+              <div class="code-panel">
+                <div class="code-panel-header">
+                  <span>JavaScript</span>
+                  <button class="copy-btn" type="button">Copy</button>
+                </div>
+                <pre><code>const items = ["flour", "water", "salt", "yeast"];
+for (const item of items) {
+  display(item);
+}
+let count = 5;
+while ((count > 0)) {
+  display(count);
+  count = (count - 1);
+  if ((count === 0)) { break; }
+}
+console.log("Done");</code></pre>
+              </div>
+            </div>
+          </article>
+
+          <article class="example">
+            <div class="example-header">
+              <h3>Example 5 — Unit Converter</h3>
+              <p>Same-dimension units combine freely. The optimizer normalizes mixed units at compile time.</p>
+            </div>
+            <div class="code-pair">
+              <div class="code-panel">
+                <div class="code-panel-header">
+                  <span>Fling</span>
+                  <button class="copy-btn" type="button">Copy</button>
+                </div>
+                <pre><code>ingredient flour_bag: kg = 1kg
+ingredient flour_scoop: grams = 250g
+ingredient batter_cups: cups = 2cups
+ingredient extra_milk: ml = 120ml
+
+ingredient total_flour: grams = flour_bag + flour_scoop
+ingredient total_liquid: ml = batter_cups + extra_milk
+
+step show_flour: display(total_flour)
+step show_liquid: display(total_liquid)
+serve total_flour</code></pre>
+              </div>
+              <div class="code-panel">
+                <div class="code-panel-header">
+                  <span>JavaScript</span>
+                  <button class="copy-btn" type="button">Copy</button>
+                </div>
+                <pre><code>const flour_bag = 1000;
+const flour_scoop = 250;
+const batter_cups = 473.2;
+const extra_milk = 120;
+const total_flour = (flour_bag + flour_scoop);
+const total_liquid = (batter_cups + extra_milk);
+display(total_flour);
+display(total_liquid);
+console.log(total_flour);</code></pre>
+              </div>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="units">
+      <div class="container">
+        <h2>The Unit Type System</h2>
+        <p class="units-intro">Fling treats physical units as compile-time types. The analyzer tracks dimensions through every expression and rejects cross-dimension operations before code generation begins.</p>
+        <div class="unit-table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Dimension</th>
+                <th>Units</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Weight</td>
+                <td>grams, kg, oz, lbs</td>
+              </tr>
+              <tr>
+                <td>Volume</td>
+                <td>ml, liters, cups, tbsp, tsp, floz</td>
+              </tr>
+              <tr>
+                <td>Temperature</td>
+                <td>celsius, fahrenheit</td>
+              </tr>
+              <tr>
+                <td>Time</td>
+                <td>seconds, minutes, hours</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="pill-grid">
+          <div class="pill-column">
+            <h3>✅ Valid</h3>
+            <div class="pill-list">
+              <span class="pill">200g + 100g → 300g</span>
+              <span class="pill">1cups + 236.6ml → 473.2ml</span>
+              <span class="pill">500g * 2 → 1000g</span>
+              <span class="pill">500g / 500g → 1.0 (amount)</span>
+            </div>
+          </div>
+          <div class="pill-column">
+            <h3>❌ Invalid</h3>
+            <div class="pill-list">
+              <span class="pill">200g + 350ml → TypeError</span>
+              <span class="pill">35minutes + 100celsius → TypeError</span>
+              <span class="pill">200g * 350ml → TypeError</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="checks" id="checks">
+      <div class="container">
+        <h2>36 Static Checks at Compile Time</h2>
+        <div class="check-grid">
+          <article class="check-card">
+            <h3>Scope (6 checks)</h3>
+            <ul>
+              <li>Use before declaration</li>
+              <li>Duplicate variable in same scope</li>
+              <li>Duplicate recipe name</li>
+              <li>Duplicate prep name</li>
+              <li>Duplicate field in prep</li>
+              <li>Undeclared identifier</li>
+            </ul>
+          </article>
+          <article class="check-card">
+            <h3>Types (18 checks)</h3>
+            <ul>
+              <li>Unit dimension mismatch in arithmetic</li>
+              <li>Unit multiplication rules (unit × unit is invalid)</li>
+              <li>Incompatible unit division</li>
+              <li>Modulo on unit types</li>
+              <li>Comparing incompatible dimensions</li>
+              <li>Equality between different types</li>
+              <li>and/or on non-truth values</li>
+              <li>not on non-truth value</li>
+              <li>Negation of non-numeric</li>
+              <li>Condition must be truth type</li>
+              <li>Mixed type collection elements</li>
+              <li>Index access on non-collection</li>
+              <li>Non-count index type</li>
+              <li>Field access on non-struct</li>
+              <li>Nonexistent field</li>
+              <li>Unknown prep type in struct literal</li>
+              <li>Missing or extra fields in struct literal</li>
+              <li>Explicit type annotation mismatch</li>
+            </ul>
+          </article>
+          <article class="check-card">
+            <h3>Control Flow (5 checks)</h3>
+            <ul>
+              <li>toss outside loop</li>
+              <li>skip outside loop</li>
+              <li>Missing serve on all paths</li>
+              <li>serve type mismatch</li>
+              <li>serve with expression in yields nothing recipe</li>
+            </ul>
+          </article>
+          <article class="check-card">
+            <h3>Access (1 check)</h3>
+            <ul>
+              <li>Assignment to immutable ingredient</li>
+            </ul>
+          </article>
+          <article class="check-card">
+            <h3>Recipe Calls (2 checks)</h3>
+            <ul>
+              <li>Wrong argument count</li>
+              <li>Wrong argument type</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="docs">
+      <div class="container">
+        <h2>Get Started</h2>
+        <div class="docs-grid">
+          <div class="code-panel">
+            <div class="code-panel-header">
+              <span>Clone and install</span>
+              <button class="copy-btn" type="button">Copy</button>
+            </div>
+            <pre><code>git clone https://github.com/FewBlue04/Fling
+cd Fling
+npm install
+npm test</code></pre>
+          </div>
+
+          <div class="code-panel">
+            <div class="code-panel-header">
+              <span>Compile a program</span>
+              <button class="copy-btn" type="button">Copy</button>
+            </div>
+            <pre><code>node src/fling.js yourprogram.fling</code></pre>
+          </div>
+
+          <div class="code-panel">
+            <div class="code-panel-header">
+              <span>CLI flags</span>
+              <button class="copy-btn" type="button">Copy</button>
+            </div>
+            <pre><code>node src/fling.js --syntax file.fling    # syntax check only
+node src/fling.js --parse file.fling     # print AST as JSON
+node src/fling.js --analyze file.fling   # type check only
+node src/fling.js --optimize file.fling  # print optimized AST
+node src/fling.js --chef                 # 🍳 surprise</code></pre>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="bio">
+      <div class="container">
+        <h2>The Chef Behind the Code</h2>
+        <div class="bio-card">
+          <span class="bio-name">Matt Dietsch</span>
+          <p class="bio-title">CS Major, Class of 2027 · Minor in Business Administration</p>
+          <p class="bio-school">Loyola Marymount University</p>
+          <p class="bio-text">Built Fling as a compiler design project at LMU. Wanted a language where the type system actually saves you from yourself — and where writing code feels a little like cooking something worth eating.</p>
+          <a class="button" href="https://github.com/FewBlue04">GitHub</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <img src="logo.png" alt="Fling logo">
+    <p>Fling — A recipe-themed programming language</p>
+    <p>Built at Loyola Marymount University · MIT License</p>
+    <div class="footer-links">
+      <a href="https://github.com/FewBlue04/Fling">GitHub Repo</a>
+      <a href="https://github.com/FewBlue04/Fling#readme">README</a>
+      <a href="#top">Back to Top</a>
+    </div>
+    <p>Made with Fling 🍳</p>
+  </footer>
+
+  <script>
+    const copyButtons = document.querySelectorAll(".copy-btn");
+
+    copyButtons.forEach((button) => {
+      button.addEventListener("click", async () => {
+        const panel = button.closest(".code-panel");
+        const code = panel.querySelector("code").innerText;
+        const original = button.innerText;
+
+        try {
+          await navigator.clipboard.writeText(code);
+          button.innerText = "Copied!";
+        } catch {
+          const textarea = document.createElement("textarea");
+          textarea.value = code;
+          textarea.setAttribute("readonly", "");
+          textarea.style.position = "fixed";
+          textarea.style.opacity = "0";
+          document.body.appendChild(textarea);
+          textarea.select();
+          document.execCommand("copy");
+          textarea.remove();
+          button.innerText = "Copied!";
+        }
+
+        window.setTimeout(() => {
+          button.innerText = original;
+        }, 1400);
+      });
+    });
+  </script>
+</body>
+</html>
