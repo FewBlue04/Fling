@@ -1,0 +1,15 @@
+--stirring makes the ingredient mutable
+stirring ingredient x: count = 10
+
+--simmer is a while loop
+simmer x >= 0:
+  step show_count: display(x)
+  step decrement: x = x - 1
+
+--lets try a for loop. off the top of my head i know we are using batch which needs a list
+
+step divider: display("-----New Line-----")
+ingredient items: [count] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+
+batch item in items:
+  step show_item: display(item)

@@ -1,0 +1,5 @@
+stirring ingredient x: count = 5
+
+simmer x > 0:
+  step show_count: display(x)
+  step decrement: x = x - 1

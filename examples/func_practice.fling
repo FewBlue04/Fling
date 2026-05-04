@@ -1,0 +1,9 @@
+--recipe called double, takes integer x and will return an integer
+-- not allowed to have trailing spaces in this language
+recipe double(x: count) yields count:
+    serve x * 2
+
+ingredient result = double(5)
+serve result
+
+--expected output is 10

@@ -1,0 +1,9 @@
+ingredient x = 10
+
+taste x > 5:
+    serve "bigger"
+  otherwise:
+    serve "smaller"
+
+--otherwise needs a space in front of it to be properly read
+--should return bigger

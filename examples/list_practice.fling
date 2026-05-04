@@ -1,0 +1,4 @@
+ingredient items: [label] = ["flour", "water", "salt"]
+
+batch item in items:
+    serve item

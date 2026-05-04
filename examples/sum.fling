@@ -2,6 +2,8 @@ ingredient x: kg = 5kg
 
 ingredient y: kg  = 6kg
 
-ingredient z = x + y
+ingredient z: kg = x + y
 
 serve z
+
+--result should be 11000 as fling stores kg as grams internally
