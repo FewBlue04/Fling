@@ -144,3 +144,9 @@ vite.config.ts.timestamp-*
 
 # Fling development scratch files
 debug.js
+
+# Powerpoint
+*.pptx_extract
+
+# lightning script
+lightning_talk_script.md
